@@ -157,7 +157,13 @@ export const AdminCourses: React.FC = () => {
       setLessonVideoUrl(result.hlsUrl || result.directUrl || result.videoId);
       setVideoUploadSuccess(`Video uploaded to Bunny Stream! GUID: ${result.videoId}`);
     } catch (err: any) {
-      setVideoUploadError(err.response?.data?.error || 'Failed to upload video to Bunny Stream. Please ensure BUNNY_STREAM_LIBRARY_ID and BUNNY_STREAM_API_KEY are configured in .env.');
+      console.error('Video upload error:', err);
+      const rawError =
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        err.message ||
+        'Failed to upload video to Bunny Stream. Please ensure BUNNY_STREAM_LIBRARY_ID and BUNNY_STREAM_API_KEY are configured.';
+      setVideoUploadError(typeof rawError === 'string' ? rawError : JSON.stringify(rawError));
     } finally {
       setIsUploadingVideo(false);
     }

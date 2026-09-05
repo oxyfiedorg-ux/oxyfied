@@ -1,3 +1,4 @@
+import axios from 'axios';
 import api from './api';
 import type { Course } from '../types';
 
@@ -316,25 +317,48 @@ export const courseService = {
     return response.data;
   },
 
-  // Bunny Stream Video Upload API
+  // Bunny Stream Video Upload API (Direct upload from browser to Bunny CDN edge to bypass serverless 4.5MB limits)
   uploadBunnyVideo: async (file: File, title?: string, onProgress?: (percent: number) => void) => {
-    const formData = new FormData();
-    formData.append('videoFile', file);
-    if (title) {
-      formData.append('title', title);
+    const videoTitle = title || file.name.replace(/\.[^/.]+$/, '');
+
+    // 1. Ask backend to create the video object in Bunny Stream (lightweight JSON payload < 1KB)
+    const initRes = await api.post('/videos/create-bunny-upload', {
+      title: videoTitle
+    });
+
+    const { videoId, libraryId, apiKey, hlsUrl, embedUrl, directUrl } = initRes.data;
+
+    if (!videoId || !libraryId || !apiKey) {
+      throw new Error('Failed to initialize Bunny Stream upload credentials.');
     }
-    const response = await api.post('/videos/upload-bunny', formData, {
-      timeout: 0, // Disable timeout for large video uploads
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      },
-      onUploadProgress: (progressEvent) => {
-        if (progressEvent.total && onProgress) {
-          const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          onProgress(percent);
+
+    // 2. Stream video file directly from the browser to Bunny CDN
+    await axios.put(
+      `https://video.bunnycdn.com/library/${libraryId}/videos/${videoId}`,
+      file,
+      {
+        headers: {
+          AccessKey: apiKey,
+          'Content-Type': 'application/octet-stream'
+        },
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total && onProgress) {
+            const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            onProgress(percent);
+          }
         }
       }
-    });
-    return response.data;
+    );
+
+    return {
+      success: true,
+      videoId,
+      libraryId,
+      title: videoTitle,
+      hlsUrl,
+      embedUrl,
+      directUrl
+    };
   }
 };
+

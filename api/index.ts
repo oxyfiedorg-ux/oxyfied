@@ -2374,6 +2374,75 @@ const videoUpload = multer({
   }
 });
 
+// Create Bunny Stream video entry for direct client upload (Bypasses Vercel 4.5MB serverless limits)
+app.post(
+  '/api/videos/create-bunny-upload',
+  authenticateToken,
+  requireAdminOrMentor,
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    const libraryId = process.env.BUNNY_STREAM_LIBRARY_ID;
+    const apiKey = process.env.BUNNY_STREAM_API_KEY;
+
+    if (!libraryId || !apiKey) {
+      res.status(400).json({
+        error:
+          'Bunny Stream is not configured on the server. Please set BUNNY_STREAM_LIBRARY_ID and BUNNY_STREAM_API_KEY in your environment variables.'
+      });
+      return;
+    }
+
+    const { title } = req.body;
+    const videoTitle = title || 'Untitled Lesson Video';
+
+    try {
+      // 1. Create Video record in Bunny Stream
+      const createRes = await axios.post(
+        `https://video.bunnycdn.com/library/${libraryId}/videos`,
+        { title: videoTitle },
+        {
+          headers: {
+            AccessKey: apiKey,
+            'Content-Type': 'application/json',
+            Accept: 'application/json'
+          }
+        }
+      );
+
+      const videoId = createRes.data?.guid;
+      if (!videoId) {
+        throw new Error('Failed to obtain video GUID from Bunny Stream API response.');
+      }
+
+      const bunnyAccess = generateBunnyStreamAccess(videoId, libraryId);
+      const cdnHostname = process.env.BUNNY_STREAM_CDN_HOSTNAME || `vz-${libraryId}.b-cdn.net`;
+
+      await logActivity(
+        'BUNNY_VIDEO_INIT',
+        `User "${req.user?.email}" initiated direct video upload for "${videoTitle}" (GUID: ${videoId}).`
+      );
+
+      res.status(201).json({
+        success: true,
+        videoId,
+        libraryId,
+        apiKey,
+        title: videoTitle,
+        hlsUrl: bunnyAccess.hlsUrl,
+        embedUrl: bunnyAccess.embedUrl,
+        directUrl: `https://${cdnHostname}/${videoId}/playlist.m3u8`
+      });
+    } catch (err: any) {
+      console.error('Bunny Stream create video error:', err.response?.data || err.message);
+      res.status(500).json({
+        error:
+          err.response?.data?.message ||
+          err.message ||
+          'Failed to initialize Bunny Stream upload. Please verify your Library ID and API Key.'
+      });
+    }
+  }
+);
+
 // Direct Bunny Stream Video Upload Route
 app.post(
   '/api/videos/upload-bunny',

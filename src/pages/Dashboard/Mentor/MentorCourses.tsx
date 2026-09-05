@@ -157,7 +157,12 @@ export const MentorCourses: React.FC = () => {
       setVideoUploadSuccess(`Video uploaded successfully! Bunny GUID: ${res.videoId}`);
     } catch (err: any) {
       console.error('Video upload error:', err);
-      setVideoUploadError(err.response?.data?.error || err.message || 'Failed to upload video to Bunny Stream.');
+      const rawError =
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        err.message ||
+        'Failed to upload video to Bunny Stream. Please ensure Bunny Stream is properly configured.';
+      setVideoUploadError(typeof rawError === 'string' ? rawError : JSON.stringify(rawError));
     } finally {
       setIsUploadingVideo(false);
     }
