@@ -1,0 +1,184 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-deep-navy-50: #fffbeb;
+  --color-deep-navy-100: #fef3c7;
+  --color-deep-navy-200: #fde68a;
+  --color-deep-navy-300: #fcd34d;
+  --color-deep-navy-450: #f59e0b;
+  --color-deep-navy-500: #d97706;
+  --color-deep-navy-600: #b45309;
+  --color-deep-navy-700: #78350f;
+  --color-deep-navy-800: #18130b;
+  --color-deep-navy-900: #0c0a09;
+  --color-deep-navy-950: #050403;
+
+  --color-royal-blue-50: #fffbeb;
+  --color-royal-blue-100: #fef3c7;
+  --color-royal-blue-200: #fde68a;
+  --color-royal-blue-300: #fcd34d;
+  --color-royal-blue-400: #fbbf24;
+  --color-royal-blue-500: #f59e0b;
+  --color-royal-blue-600: #d97706;
+  --color-royal-blue-700: #b45309;
+  --color-royal-blue-800: #92400e;
+  --color-royal-blue-900: #78350f;
+  --color-royal-blue-950: #451a03;
+
+  --color-light-blue-50: #fff7ed;
+  --color-light-blue-100: #ffedd5;
+  --color-light-blue-200: #fed7aa;
+  --color-light-blue-350: #fdba74;
+  --color-light-blue-400: #fb923c;
+  --color-light-blue-500: #f97316;
+  --color-light-blue-600: #ea580c;
+  --color-light-blue-700: #c2410c;
+  --color-light-blue-800: #9a3412;
+  --color-light-blue-900: #7c2d12;
+
+  --font-sans: 'Inter', sans-serif;
+  --font-display: 'Outfit', sans-serif;
+}
+
+/* Base Styles */
+body {
+  background-color: #090705;
+  color: #e7e5e4; /* stone-200 equivalent */
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: -0.025em;
+  font-weight: 600;
+  color: #ffffff; /* white headers by default */
+}
+
+/* Custom Utilities */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.btn-primary {
+  composes: btn;
+  background-color: #d97706; /* amber-600 */
+  color: #090705; /* dark text for premium contrast */
+  font-weight: 700;
+  box-shadow: 0 0 12px rgba(217, 119, 6, 0.25);
+}
+
+.btn-primary:hover {
+  background-color: #f59e0b; /* amber-500 */
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.45);
+}
+
+.btn-secondary {
+  composes: btn;
+  background-color: #171513; /* dark stone/charcoal */
+  color: #d6d3d1; /* stone-300 */
+  border: 1px solid #2e2a24; /* subtle amber-stone border */
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+}
+
+.btn-secondary:hover {
+  background-color: #26211c;
+  color: #ffffff;
+  border-color: #d97706; /* amber highlight border on hover */
+}
+
+.btn-navy {
+  composes: btn;
+  background-color: rgba(120, 53, 15, 0.2); /* amber-950/20 */
+  color: #fbbf24; /* amber-400 */
+  border: 1px solid rgba(217, 119, 6, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.btn-navy:hover {
+  background-color: rgba(120, 53, 15, 0.35);
+  color: #ffffff;
+  border-color: #f59e0b;
+}
+
+.glass-card {
+  background-color: rgba(23, 21, 19, 0.6); /* stone-900/60 */
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(217, 119, 6, 0.1);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+}
+
+.premium-card {
+  background-color: #171513;
+  border: 1px solid #26211c;
+  border-radius: 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.premium-card:hover {
+  box-shadow: 0 20px 30px rgba(0, 0, 0, 0.6), 0 0 15px rgba(217, 119, 6, 0.15);
+  border-color: rgba(217, 119, 6, 0.3);
+  transform: translateY(-0.25rem);
+}
+
+.section-padding {
+  padding-top: 5rem;
+  padding-bottom: 5rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  max-w: 80rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (min-width: 640px) {
+  .section-padding {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .section-padding {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: #090705;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #26211c;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #d97706;
+}
+
+.page-transition {
+  position: relative;
+  width: 100%;
+}
