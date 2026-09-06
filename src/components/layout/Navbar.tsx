@@ -83,7 +83,7 @@ export const Navbar: React.FC = () => {
               <span
                 className="ml-0 font-display font-extrabold text-xl sm:text-2xl md:text-3xl tracking-tight text-white group-hover:text-stone-200 transition-colors duration-300"
               >
-                yfied
+                fied
               </span>
             </Link>
 
