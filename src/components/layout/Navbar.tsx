@@ -76,7 +76,7 @@ export const Navbar: React.FC = () => {
               <img
                 src="/oxyfied.png"
                 alt="OX"
-                className="h-10 sm:h-11 md:h-12 w-auto object-contain group-hover:scale-105 transition-transform duration-300"
+                className="h-5 sm:h-6 md:h-7 w-auto object-contain group-hover:scale-105 transition-transform duration-300"
               />
 
               {/* yfied Text */}
