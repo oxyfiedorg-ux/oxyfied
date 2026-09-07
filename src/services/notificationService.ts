@@ -1,5 +1,5 @@
 import api from './api';
-import type { AppNotification, NotificationResponse } from '../types';
+import type { NotificationResponse } from '../types';
 
 export const notificationService = {
   getNotifications: async (): Promise<NotificationResponse> => {
