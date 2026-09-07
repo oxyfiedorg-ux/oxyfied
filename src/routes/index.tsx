@@ -8,6 +8,7 @@ import { DashboardLayout } from '../layouts/DashboardLayout';
 
 // Guard components
 import { ProtectedRoute, PublicRoute, AdminRoute, MentorRoute } from '../components/common/RouteGuards';
+import { ErrorBoundary } from '../components/common/ErrorBoundary';
 
 // Lazy Loaded Pages to optimize bundle size
 const Home = React.lazy(() => import('../pages/Home').then(module => ({ default: module.Home })));
@@ -62,77 +63,79 @@ const SuspenseLoader = () => (
 
 export const AppRoutes: React.FC = () => {
   return (
-    <Suspense fallback={<SuspenseLoader />}>
-      <Routes>
-        {/* Public Website routes (Header + Footer) */}
-        <Route element={<MainLayout />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/courses" element={<Courses />} />
-          <Route path="/courses/:slug" element={<CourseDetails />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/resources" element={<Resources />} />
-          <Route path="/resources/:slug" element={<ResourceDetails />} />
-          
-          {/* Categories index page defaults back to Courses listings */}
-          <Route path="/categories" element={<Navigate to="/courses" replace />} />
-          
-          {/* Guest Only Routes (Login/Register/Recovery) */}
-          <Route element={<PublicRoute />}>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
+    <ErrorBoundary>
+      <Suspense fallback={<SuspenseLoader />}>
+        <Routes>
+          {/* Public Website routes (Header + Footer) */}
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/courses" element={<Courses />} />
+            <Route path="/courses/:slug" element={<CourseDetails />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/resources" element={<Resources />} />
+            <Route path="/resources/:slug" element={<ResourceDetails />} />
+            
+            {/* Categories index page defaults back to Courses listings */}
+            <Route path="/categories" element={<Navigate to="/courses" replace />} />
+            
+            {/* Guest Only Routes (Login/Register/Recovery) */}
+            <Route element={<PublicRoute />}>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+            </Route>
+
+            {/* Secure Route: Checkout checkout */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/checkout/:courseId" element={<Checkout />} />
+            </Route>
           </Route>
 
-          {/* Secure Route: Checkout checkout */}
+          {/* Secure LMS Dashboard Area (Student) */}
           <Route element={<ProtectedRoute />}>
-            <Route path="/checkout/:courseId" element={<Checkout />} />
+            <Route path="/dashboard" element={<DashboardLayout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="my-courses" element={<MyCourses />} />
+              <Route path="progress" element={<ProgressTracking />} />
+              <Route path="certificates" element={<Certificates />} />
+              <Route path="settings" element={<Settings />} />
+            </Route>
+            
+            {/* Standalone secure video learning page */}
+            <Route path="/dashboard/learn/:courseId" element={<Learning />} />
+            <Route path="/dashboard/learn/:courseId/:lessonId" element={<Learning />} />
           </Route>
-        </Route>
 
-        {/* Secure LMS Dashboard Area (Student) */}
-        <Route element={<ProtectedRoute />}>
-          <Route path="/dashboard" element={<DashboardLayout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="my-courses" element={<MyCourses />} />
-            <Route path="progress" element={<ProgressTracking />} />
-            <Route path="certificates" element={<Certificates />} />
-            <Route path="settings" element={<Settings />} />
+          {/* Secure Admin Dashboard Area */}
+          <Route element={<AdminRoute />}>
+            <Route path="/admin/dashboard" element={<DashboardLayout />}>
+              <Route index element={<AdminOverview />} />
+              <Route path="users" element={<AdminUsers />} />
+              <Route path="mentors" element={<AdminMentors />} />
+              <Route path="courses" element={<AdminCourses />} />
+              <Route path="enrollments" element={<AdminEnrollments />} />
+              <Route path="settings" element={<Settings />} />
+            </Route>
           </Route>
-          
-          {/* Standalone secure video learning page */}
-          <Route path="/dashboard/learn/:courseId" element={<Learning />} />
-          <Route path="/dashboard/learn/:courseId/:lessonId" element={<Learning />} />
-        </Route>
 
-        {/* Secure Admin Dashboard Area */}
-        <Route element={<AdminRoute />}>
-          <Route path="/admin/dashboard" element={<DashboardLayout />}>
-            <Route index element={<AdminOverview />} />
-            <Route path="users" element={<AdminUsers />} />
-            <Route path="mentors" element={<AdminMentors />} />
-            <Route path="courses" element={<AdminCourses />} />
-            <Route path="enrollments" element={<AdminEnrollments />} />
-            <Route path="settings" element={<Settings />} />
+          {/* Secure Mentor Dashboard Area */}
+          <Route element={<MentorRoute />}>
+            <Route path="/mentor/dashboard" element={<DashboardLayout />}>
+              <Route index element={<MentorOverview />} />
+              <Route path="courses" element={<MentorCourses />} />
+              <Route path="add-course" element={<MentorAddCourse />} />
+              <Route path="students" element={<MentorStudents />} />
+              <Route path="submissions" element={<MentorSubmissions />} />
+              <Route path="analytics" element={<MentorAnalytics />} />
+              <Route path="profile" element={<MentorProfile />} />
+            </Route>
           </Route>
-        </Route>
 
-        {/* Secure Mentor Dashboard Area */}
-        <Route element={<MentorRoute />}>
-          <Route path="/mentor/dashboard" element={<DashboardLayout />}>
-            <Route index element={<MentorOverview />} />
-            <Route path="courses" element={<MentorCourses />} />
-            <Route path="add-course" element={<MentorAddCourse />} />
-            <Route path="students" element={<MentorStudents />} />
-            <Route path="submissions" element={<MentorSubmissions />} />
-            <Route path="analytics" element={<MentorAnalytics />} />
-            <Route path="profile" element={<MentorProfile />} />
-          </Route>
-        </Route>
-
-        {/* Global Catch-all redirect to Home */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Suspense>
+          {/* Global Catch-all redirect to Home */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
+    </ErrorBoundary>
   );
 };

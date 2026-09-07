@@ -21,8 +21,9 @@ model User {
   enrollments  Enrollment[]
   progress     LessonProgress[]
   mentor       Mentor?
-  sessions     UserSession[]
-  submissions  ProjectSubmission[]
+  sessions      UserSession[]
+  submissions   ProjectSubmission[]
+  notifications Notification[]
 }
 
 model Category {
@@ -249,5 +250,22 @@ model LessonResource {
 
   @@index([lessonId])
 }
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      String   @default("info") // info, success, warning, course, submission, enrollment
+  link      String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
 
 

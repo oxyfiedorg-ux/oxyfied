@@ -16,9 +16,12 @@ import {
   FileText
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { NotificationDropdown } from '../components/ui/NotificationDropdown';
 
 export const DashboardLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -161,14 +164,32 @@ export const DashboardLayout: React.FC = () => {
 
           {/* User profile actions */}
           <div className="flex items-center gap-4">
-            {/* Notification Bell */}
-            <button
-              className="p-1.5 rounded-full text-stone-400 hover:text-stone-200 hover:bg-stone-800 transition-colors relative"
-              aria-label="View notifications"
-            >
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-amber-500" />
-            </button>
+            {/* Notification Bell Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setIsNotificationsOpen(prev => !prev)}
+                className={`p-2 rounded-full transition-all relative ${
+                  isNotificationsOpen 
+                    ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' 
+                    : 'text-stone-400 hover:text-stone-200 hover:bg-stone-800'
+                }`}
+                aria-label="View notifications"
+                title="Notifications"
+              >
+                <Bell className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-stone-950 text-[10px] font-extrabold flex items-center justify-center animate-pulse">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </button>
+
+              <NotificationDropdown
+                isOpen={isNotificationsOpen}
+                onClose={() => setIsNotificationsOpen(false)}
+                onUnreadChange={(count) => setUnreadCount(count)}
+              />
+            </div>
 
             {/* Profile Avatar Card */}
             <div className="flex items-center gap-2.5 border-l border-stone-800 pl-4">

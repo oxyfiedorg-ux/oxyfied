@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { Menu, X, Search, LogOut, User, BookOpen } from 'lucide-react';
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { Menu, X, Search, LogOut, User, BookOpen, Bell } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { NotificationDropdown } from '../ui/NotificationDropdown';
 
 export const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const { logout, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const dashboardRoute =
     user?.role === 'admin'
@@ -17,6 +21,12 @@ export const Navbar: React.FC = () => {
       : user?.role === 'mentor'
         ? '/mentor/dashboard'
         : '/dashboard';
+
+  // Automatically close any open mobile drawer or notification dropdown on route change / back navigation
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+    setIsNotificationsOpen(false);
+  }, [location.pathname, location.search]);
 
   // Scroll event detector to compress navbar height and inject shadows
   useEffect(() => {
@@ -138,6 +148,33 @@ export const Navbar: React.FC = () => {
               {/* Login / Dashboard */}
               {isAuthenticated ? (
                 <div className="flex items-center gap-3 border-l border-stone-800 pl-4">
+
+                  {/* Notification Bell Dropdown */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setIsNotificationsOpen(prev => !prev)}
+                      className={`p-2 rounded-full transition-all relative ${
+                        isNotificationsOpen 
+                          ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' 
+                          : 'text-stone-400 hover:text-stone-200 hover:bg-stone-900/60'
+                      }`}
+                      aria-label="View notifications"
+                      title="Notifications"
+                    >
+                      <Bell className="w-4.5 h-4.5" />
+                      {unreadCount > 0 && (
+                        <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] px-1 rounded-full bg-amber-500 text-stone-950 text-[9px] font-extrabold flex items-center justify-center animate-pulse">
+                          {unreadCount > 9 ? '9+' : unreadCount}
+                        </span>
+                      )}
+                    </button>
+
+                    <NotificationDropdown
+                      isOpen={isNotificationsOpen}
+                      onClose={() => setIsNotificationsOpen(false)}
+                      onUnreadChange={(count) => setUnreadCount(count)}
+                    />
+                  </div>
 
                   <Link
                     to={dashboardRoute}

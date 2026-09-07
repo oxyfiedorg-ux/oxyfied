@@ -130,3 +130,19 @@ export interface ActivityLog {
   details: string;
   createdAt: string;
 }
+
+export interface AppNotification {
+  id: string;
+  userId: string;
+  title: string;
+  message: string;
+  type: 'info' | 'success' | 'warning' | 'course' | 'submission' | 'enrollment';
+  link?: string | null;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export interface NotificationResponse {
+  notifications: AppNotification[];
+  unreadCount: number;
+}

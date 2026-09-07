@@ -480,6 +480,210 @@ app.put('/api/users/profile', authenticateToken, async (req: AuthRequest, res: R
   }
 });
 
+// ==========================================
+// NOTIFICATIONS SYSTEM ENDPOINTS (NEW)
+// ==========================================
+
+// Helper: Create notification
+const createNotification = async (
+  userId: string,
+  title: string,
+  message: string,
+  type: string = 'info',
+  link?: string
+) => {
+  try {
+    return await prisma.notification.create({
+      data: {
+        userId,
+        title,
+        message,
+        type,
+        link
+      }
+    });
+  } catch (err) {
+    console.error('Failed to create notification:', err);
+    return null;
+  }
+};
+
+// Seed default initial notifications if empty
+const seedDefaultNotifications = async (userId: string, role: string) => {
+  try {
+    const count = await prisma.notification.count({ where: { userId } });
+    if (count > 0) return;
+
+    const now = new Date();
+    const sampleNotifications: Array<{ title: string; message: string; type: string; link?: string; createdAt: Date }> = [];
+
+    if (role === 'mentor') {
+      sampleNotifications.push(
+        {
+          title: 'Welcome to Mentor Studio',
+          message: 'Your mentor workspace is active. Manage your curriculum modules, assign private video lectures, and review student deliverables.',
+          type: 'info',
+          link: '/mentor/dashboard/courses',
+          createdAt: new Date(now.getTime() - 2 * 60 * 60 * 1000)
+        },
+        {
+          title: 'Student Project Deliverables',
+          message: 'You can audit and download project submissions uploaded by enrolled students from your submissions hub.',
+          type: 'submission',
+          link: '/mentor/dashboard/submissions',
+          createdAt: new Date(now.getTime() - 45 * 60 * 1000)
+        },
+        {
+          title: 'Curriculum & Video Reference Active',
+          message: 'You can preview and reference all your lecture streams directly in the syllabus modal with our built-in video player.',
+          type: 'course',
+          link: '/mentor/dashboard/courses',
+          createdAt: new Date(now.getTime() - 10 * 60 * 1000)
+        }
+      );
+    } else if (role === 'admin') {
+      sampleNotifications.push(
+        {
+          title: 'Admin Control Center Ready',
+          message: 'Full platform management initialized. Monitor user enrollments, mentor assignments, and revenue KPIs.',
+          type: 'info',
+          link: '/admin/dashboard',
+          createdAt: new Date(now.getTime() - 3 * 60 * 60 * 1000)
+        },
+        {
+          title: 'Security & Session Monitor Active',
+          message: 'Concurrent device lock and active session monitoring are operational across all accounts.',
+          type: 'success',
+          link: '/admin/dashboard/users',
+          createdAt: new Date(now.getTime() - 90 * 60 * 1000)
+        },
+        {
+          title: 'Course Tracks Synchronized',
+          message: 'Technical cybersecurity and data engineering curriculum tracks are online and ready for student enrollments.',
+          type: 'course',
+          link: '/admin/dashboard/courses',
+          createdAt: new Date(now.getTime() - 20 * 60 * 1000)
+        }
+      );
+    } else {
+      sampleNotifications.push(
+        {
+          title: 'Welcome to Oxyfied Learning Platform',
+          message: 'Explore our practical, industry-grade certificate programs and start accelerating your technical career.',
+          type: 'info',
+          link: '/courses',
+          createdAt: new Date(now.getTime() - 4 * 60 * 60 * 1000)
+        },
+        {
+          title: 'Cybersecurity Certificate Track Available',
+          message: 'Dive into practical ethical hacking, defense architectures, and hands-on laboratory exercises.',
+          type: 'course',
+          link: '/courses/cybersecurity',
+          createdAt: new Date(now.getTime() - 90 * 60 * 1000)
+        },
+        {
+          title: 'Interactive Video Classroom Ready',
+          message: 'Resume your lecture progress anytime with our adaptive video player and downloadable lesson notes.',
+          type: 'success',
+          link: '/dashboard',
+          createdAt: new Date(now.getTime() - 15 * 60 * 1000)
+        }
+      );
+    }
+
+    for (const n of sampleNotifications) {
+      await prisma.notification.create({
+        data: {
+          userId,
+          title: n.title,
+          message: n.message,
+          type: n.type,
+          link: n.link,
+          createdAt: n.createdAt
+        }
+      });
+    }
+  } catch (seedErr) {
+    console.error('Notification seeding error:', seedErr);
+  }
+};
+
+// Get notifications for current user
+app.get('/api/notifications', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    await seedDefaultNotifications(req.user!.id, req.user!.role);
+
+    const notifications = await prisma.notification.findMany({
+      where: { userId: req.user!.id },
+      orderBy: { createdAt: 'desc' },
+      take: 40
+    });
+
+    const unreadCount = await prisma.notification.count({
+      where: { userId: req.user!.id, isRead: false }
+    });
+
+    res.json({
+      notifications,
+      unreadCount
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to retrieve notifications.' });
+  }
+});
+
+// Mark a single notification as read
+app.put('/api/notifications/:id/read', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
+  const { id } = req.params as { id: string };
+  try {
+    const notification = await prisma.notification.updateMany({
+      where: { id, userId: req.user!.id },
+      data: { isRead: true }
+    });
+    res.json({ success: true, updated: notification.count });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update notification.' });
+  }
+});
+
+// Mark all notifications as read
+app.put('/api/notifications/read-all', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    await prisma.notification.updateMany({
+      where: { userId: req.user!.id, isRead: false },
+      data: { isRead: true }
+    });
+    res.json({ success: true, message: 'All notifications marked as read.' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to mark notifications as read.' });
+  }
+});
+
+// Delete a single notification
+app.delete('/api/notifications/:id', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
+  const { id } = req.params as { id: string };
+  try {
+    await prisma.notification.deleteMany({
+      where: { id, userId: req.user!.id }
+    });
+    res.json({ success: true, message: 'Notification deleted.' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete notification.' });
+  }
+});
+
+// Clear all notifications
+app.delete('/api/notifications/clear-all', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    await prisma.notification.deleteMany({
+      where: { userId: req.user!.id }
+    });
+    res.json({ success: true, message: 'All notifications cleared.' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to clear notifications.' });
+  }
+});
+
 // Get course listings
 app.get('/api/courses', async (req: Request, res: Response): Promise<void> => {
   try {

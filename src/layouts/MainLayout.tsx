@@ -3,7 +3,6 @@ import { Outlet } from 'react-router-dom';
 import { Navbar } from '../components/layout/Navbar';
 import { Footer } from '../components/layout/Footer';
 import { FloatingSupport } from '../components/ui/FloatingSupport';
-import { motion } from 'framer-motion';
 
 export const MainLayout: React.FC = () => {
   return (
@@ -14,16 +13,10 @@ export const MainLayout: React.FC = () => {
       {/* Main Navbar */}
       <Navbar />
 
-      {/* Page Content wrapper with Framer Motion transitions */}
-      <motion.main
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -8 }}
-        transition={{ duration: 0.35, ease: 'easeOut' }}
-        className="flex-grow pt-[72px]" // Offset for sticky navbar
-      >
+      {/* Page Content wrapper */}
+      <main className="flex-grow pt-[72px] min-h-[calc(100vh-72px)] flex flex-col">
         <Outlet />
-      </motion.main>
+      </main>
 
       {/* Floating Customer Helpdesk */}
       <FloatingSupport />

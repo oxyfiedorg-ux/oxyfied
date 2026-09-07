@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { AppRoutes } from './routes';
+import { ScrollToTop } from './components/common/ScrollToTop';
 
 // Initialize TanStack React Query Client for API management
 const queryClient = new QueryClient({
@@ -22,6 +23,7 @@ const App: React.FC = () => {
     <QueryClientProvider client={queryClient}>
       <HelmetProvider>
         <BrowserRouter>
+          <ScrollToTop />
           <AuthProvider>
             <CartProvider>
               <div className="page-transition">
