@@ -41,8 +41,52 @@ if (!fs.existsSync(UPLOADS_DIR)) {
   fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 }
 
-// Serve uploaded files statically
+// Serve uploaded files statically or dynamically from PostgreSQL on serverless environments
 app.use('/uploads', express.static(UPLOADS_DIR));
+
+app.get('/uploads/:filename', async (req: Request, res: Response): Promise<void> => {
+  const { filename } = req.params as { filename: string };
+  const filePathOnDisk = path.resolve(UPLOADS_DIR, filename);
+  if (fs.existsSync(filePathOnDisk)) {
+    res.sendFile(filePathOnDisk);
+    return;
+  }
+
+  try {
+    // Search for lesson resource in DB
+    const resource = await prisma.lessonResource.findFirst({
+      where: { filePath: { endsWith: filename } }
+    });
+
+    if (resource && resource.fileData) {
+      const buffer = Buffer.from(resource.fileData, 'base64');
+      res.setHeader('Content-Type', resource.mimeType || 'application/pdf');
+      res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(resource.fileName)}"`);
+      res.setHeader('Content-Length', buffer.length);
+      res.send(buffer);
+      return;
+    }
+
+    // Search for project submission in DB
+    const submission = await prisma.projectSubmission.findFirst({
+      where: { filePath: { endsWith: filename } }
+    });
+
+    if (submission && submission.fileData) {
+      const buffer = Buffer.from(submission.fileData, 'base64');
+      res.setHeader('Content-Type', submission.mimeType || 'application/octet-stream');
+      res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(submission.fileName)}"`);
+      res.setHeader('Content-Length', buffer.length);
+      res.send(buffer);
+      return;
+    }
+
+    res.status(404).json({ error: 'Requested file was not found.' });
+  } catch (err) {
+    console.error('File stream error:', err);
+    res.status(500).json({ error: 'Failed to retrieve file stream.' });
+  }
+});
 
 // Extend Express Request type
 interface AuthRequest extends Request {
@@ -2596,30 +2640,16 @@ app.post(
   }
 );
 
-// Multer configuration for student project submissions
-const submissionStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    if (!fs.existsSync(UPLOADS_DIR)) {
-      fs.mkdirSync(UPLOADS_DIR, { recursive: true });
-    }
-    cb(null, UPLOADS_DIR);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const safeName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
-    cb(null, `${uniqueSuffix}-${safeName}`);
-  }
-});
-
+// Multer configuration for file uploads (stored in memory to persist into DB on Vercel/serverless)
 const submissionUpload = multer({
-  storage: submissionStorage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 25 * 1024 * 1024 }, // 25 MB file size limit
   fileFilter: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
-    if (ext === '.zip' || ext === '.pdf') {
+    if (['.zip', '.pdf', '.doc', '.docx', '.txt', '.png', '.jpg', '.jpeg'].includes(ext)) {
       cb(null, true);
     } else {
-      cb(new Error('Only ZIP and PDF files are allowed.'));
+      cb(new Error('Only ZIP, PDF, DOC, and image files are allowed.'));
     }
   }
 });
@@ -2641,9 +2671,6 @@ app.post('/api/submissions/upload', authenticateToken, (req: AuthRequest, res: R
       return;
     }
     if (!courseId || !lessonId) {
-      // Remove uploaded file if body checks fail
-      const filePathOnDisk = path.resolve(UPLOADS_DIR, req.file.filename);
-      if (fs.existsSync(filePathOnDisk)) fs.unlinkSync(filePathOnDisk);
       res.status(400).json({ error: 'courseId and lessonId are required.' });
       return;
     }
@@ -2655,8 +2682,21 @@ app.post('/api/submissions/upload', authenticateToken, (req: AuthRequest, res: R
     else if (bytes < 1024 * 1024) sizeStr = `${(bytes / 1024).toFixed(1)} KB`;
     else sizeStr = `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    const safeName = req.file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const filename = `${uniqueSuffix}-${safeName}`;
+    const filePath = `/uploads/${filename}`;
+    const fileData = req.file.buffer ? req.file.buffer.toString('base64') : null;
+
+    // Cache to disk if possible
+    try {
+      if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+      if (req.file.buffer) fs.writeFileSync(path.resolve(UPLOADS_DIR, filename), req.file.buffer);
+    } catch (diskErr) {
+      // Ignore disk caching failures on serverless environments
+    }
+
     // Save to database
-    const filePath = `/uploads/${req.file.filename}`;
     const submission = await prisma.projectSubmission.create({
       data: {
         userId: req.user!.id,
@@ -2664,7 +2704,9 @@ app.post('/api/submissions/upload', authenticateToken, (req: AuthRequest, res: R
         lessonId,
         fileName: req.file.originalname,
         filePath,
-        fileSize: sizeStr
+        fileSize: sizeStr,
+        fileData,
+        mimeType: req.file.mimetype || 'application/octet-stream'
       }
     });
 
@@ -2672,10 +2714,6 @@ app.post('/api/submissions/upload', authenticateToken, (req: AuthRequest, res: R
     res.status(201).json(submission);
   } catch (err) {
     console.error('Upload handler error:', err);
-    if (req.file) {
-      const filePathOnDisk = path.resolve(UPLOADS_DIR, req.file.filename);
-      if (fs.existsSync(filePathOnDisk)) fs.unlinkSync(filePathOnDisk);
-    }
     res.status(500).json({ error: 'Failed to record project submission.' });
   }
 });
@@ -2689,6 +2727,16 @@ app.get('/api/submissions/:courseId/:lessonId', authenticateToken, async (req: A
         userId: req.user!.id,
         courseId,
         lessonId
+      },
+      select: {
+        id: true,
+        userId: true,
+        courseId: true,
+        lessonId: true,
+        fileName: true,
+        filePath: true,
+        fileSize: true,
+        createdAt: true
       },
       orderBy: {
         createdAt: 'desc'
@@ -2719,11 +2767,15 @@ app.delete('/api/submissions/:id', authenticateToken, async (req: AuthRequest, r
       return;
     }
 
-    // Remove file from disk
-    const fileName = path.basename(submission.filePath);
-    const filePathOnDisk = path.resolve(UPLOADS_DIR, fileName);
-    if (fs.existsSync(filePathOnDisk)) {
-      fs.unlinkSync(filePathOnDisk);
+    // Remove file from disk if present
+    try {
+      const fileName = path.basename(submission.filePath);
+      const filePathOnDisk = path.resolve(UPLOADS_DIR, fileName);
+      if (fs.existsSync(filePathOnDisk)) {
+        fs.unlinkSync(filePathOnDisk);
+      }
+    } catch (diskErr) {
+      // Ignore
     }
 
     // Remove from database
@@ -2761,13 +2813,37 @@ app.post('/api/mentor/lessons/:lessonId/resources', authenticateToken, requireAd
     else if (bytes < 1024 * 1024) sizeStr = `${(bytes / 1024).toFixed(1)} KB`;
     else sizeStr = `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 
-    const filePath = `/uploads/${req.file.filename}`;
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    const safeName = req.file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const filename = `${uniqueSuffix}-${safeName}`;
+    const filePath = `/uploads/${filename}`;
+    const fileData = req.file.buffer ? req.file.buffer.toString('base64') : null;
+
+    // Cache to disk if possible
+    try {
+      if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+      if (req.file.buffer) fs.writeFileSync(path.resolve(UPLOADS_DIR, filename), req.file.buffer);
+    } catch (diskErr) {
+      // Ignore disk errors on serverless
+    }
+
     const resource = await prisma.lessonResource.create({
       data: {
         lessonId,
         fileName: req.file.originalname,
         filePath,
-        fileSize: sizeStr
+        fileSize: sizeStr,
+        fileData,
+        mimeType: req.file.mimetype || 'application/pdf'
+      },
+      select: {
+        id: true,
+        lessonId: true,
+        fileName: true,
+        filePath: true,
+        fileSize: true,
+        mimeType: true,
+        createdAt: true
       }
     });
 
@@ -2775,10 +2851,6 @@ app.post('/api/mentor/lessons/:lessonId/resources', authenticateToken, requireAd
     res.status(201).json(resource);
   } catch (err) {
     console.error('Resource upload error:', err);
-    if (req.file) {
-      const filePathOnDisk = path.resolve(UPLOADS_DIR, req.file.filename);
-      if (fs.existsSync(filePathOnDisk)) fs.unlinkSync(filePathOnDisk);
-    }
     res.status(500).json({ error: 'Failed to record lesson resource.' });
   }
 });
@@ -2789,11 +2861,56 @@ app.get('/api/lessons/:lessonId/resources', authenticateToken, async (req: AuthR
     const { lessonId } = req.params as { lessonId: string };
     const resources = await prisma.lessonResource.findMany({
       where: { lessonId },
+      select: {
+        id: true,
+        lessonId: true,
+        fileName: true,
+        filePath: true,
+        fileSize: true,
+        mimeType: true,
+        createdAt: true
+      },
       orderBy: { createdAt: 'desc' }
     });
     res.json(resources);
   } catch (err) {
     res.status(500).json({ error: 'Failed to retrieve lesson resources.' });
+  }
+});
+
+// Direct Resource Download Route
+app.get('/api/resources/:id/download', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params as { id: string };
+    const resource = await prisma.lessonResource.findUnique({
+      where: { id }
+    });
+
+    if (!resource) {
+      res.status(404).json({ error: 'Resource not found.' });
+      return;
+    }
+
+    if (resource.fileData) {
+      const buffer = Buffer.from(resource.fileData, 'base64');
+      res.setHeader('Content-Type', resource.mimeType || 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(resource.fileName)}"`);
+      res.setHeader('Content-Length', buffer.length);
+      res.send(buffer);
+      return;
+    }
+
+    const fileName = path.basename(resource.filePath);
+    const filePathOnDisk = path.resolve(UPLOADS_DIR, fileName);
+    if (fs.existsSync(filePathOnDisk)) {
+      res.download(filePathOnDisk, resource.fileName);
+      return;
+    }
+
+    res.status(404).json({ error: 'File data is not available.' });
+  } catch (err) {
+    console.error('Download error:', err);
+    res.status(500).json({ error: 'Failed to download resource.' });
   }
 });
 
@@ -2810,11 +2927,15 @@ app.delete('/api/mentor/resources/:id', authenticateToken, requireAdminOrMentor,
       return;
     }
 
-    // Remove file from disk
-    const fileName = path.basename(resource.filePath);
-    const filePathOnDisk = path.resolve(UPLOADS_DIR, fileName);
-    if (fs.existsSync(filePathOnDisk)) {
-      fs.unlinkSync(filePathOnDisk);
+    // Remove file from disk if present
+    try {
+      const fileName = path.basename(resource.filePath);
+      const filePathOnDisk = path.resolve(UPLOADS_DIR, fileName);
+      if (fs.existsSync(filePathOnDisk)) {
+        fs.unlinkSync(filePathOnDisk);
+      }
+    } catch (diskErr) {
+      // Ignore
     }
 
     // Remove from database

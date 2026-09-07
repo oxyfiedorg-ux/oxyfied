@@ -287,8 +287,10 @@ export const Learning: React.FC = () => {
                 ) : (
                   <div className="space-y-2">
                     {lessonResources.map((res) => {
-                      const baseURL = api.defaults.baseURL ? api.defaults.baseURL.replace('/api', '') : 'http://localhost:5000';
-                      const fileUrl = `${baseURL}${res.filePath}`;
+                      const baseURL = api.defaults.baseURL ? api.defaults.baseURL.replace(/\/api\/?$/, '') : '';
+                      const fileUrl = res.id 
+                        ? `${api.defaults.baseURL ? api.defaults.baseURL : '/api'}/resources/${res.id}/download` 
+                        : `${baseURL}${res.filePath}`;
 
                       return (
                         <div key={res.id} className="flex items-center justify-between p-3 bg-stone-955 border border-stone-850 rounded-xl hover:border-stone-800 transition-colors">
@@ -298,7 +300,7 @@ export const Learning: React.FC = () => {
                           </span>
                           <a 
                             href={fileUrl}
-                            download
+                            download={res.fileName}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center gap-1 text-[10px] font-bold text-amber-500 hover:text-amber-450 bg-stone-900 border border-stone-850 px-2.5 py-1.5 rounded-lg hover:border-amber-500/25 transition-all"

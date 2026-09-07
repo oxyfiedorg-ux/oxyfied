@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Plus, Edit, Trash2, ShieldAlert, Loader2, X, Check, 
-  Folder, GraduationCap, Video, Layers, Upload, CheckCircle2, AlertCircle, Play
+  Folder, GraduationCap, Video, Layers, Upload, CheckCircle2, AlertCircle, Play, Download
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { courseService } from '../../../services/courseService';
@@ -1221,21 +1221,33 @@ export const MentorCourses: React.FC = () => {
                               {res.fileSize} • {new Date(res.createdAt).toLocaleDateString()}
                             </span>
                           </div>
-                          <button 
-                            onClick={async () => {
-                              if (!window.confirm(`Delete resource file "${res.fileName}"?`)) return;
-                              try {
-                                await courseService.deleteLessonResource(res.id);
-                                setLessonResources(prev => prev.filter(r => r.id !== res.id));
-                              } catch (err) {
-                                alert('Failed to delete resource.');
-                              }
-                            }}
-                            className="p-1.5 text-stone-450 hover:text-red-500 rounded bg-stone-900 border border-stone-850 hover:border-red-950/30 transition-colors"
-                            title="Delete Resource File"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <a
+                              href={`/api/resources/${res.id}/download`}
+                              download={res.fileName}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-1.5 text-amber-500 hover:text-amber-400 rounded bg-stone-900 border border-stone-850 hover:border-amber-500/30 transition-colors flex items-center gap-1 text-[10px] font-bold"
+                              title="Download / View Resource File"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                            </a>
+                            <button 
+                              onClick={async () => {
+                                if (!window.confirm(`Delete resource file "${res.fileName}"?`)) return;
+                                try {
+                                  await courseService.deleteLessonResource(res.id);
+                                  setLessonResources(prev => prev.filter(r => r.id !== res.id));
+                                } catch (err) {
+                                  alert('Failed to delete resource.');
+                                }
+                              }}
+                              className="p-1.5 text-stone-450 hover:text-red-500 rounded bg-stone-900 border border-stone-850 hover:border-red-950/30 transition-colors"
+                              title="Delete Resource File"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </div>
                       );
                     })}

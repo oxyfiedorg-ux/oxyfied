@@ -227,6 +227,8 @@ model ProjectSubmission {
   fileName  String
   filePath  String
   fileSize  String
+  fileData  String?  @db.Text
+  mimeType  String?
   createdAt DateTime @default(now())
 
   @@index([userId])
@@ -241,6 +243,8 @@ model LessonResource {
   fileName  String
   filePath  String
   fileSize  String
+  fileData  String?  @db.Text
+  mimeType  String?
   createdAt DateTime @default(now())
 
   @@index([lessonId])
