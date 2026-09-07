@@ -44,9 +44,7 @@ export const ForgotPassword: React.FC = () => {
         {/* Header */}
         <div className="text-center space-y-2">
           <Link to="/" className="inline-flex items-center gap-2 justify-center">
-            <div className="w-8 h-8 rounded bg-gradient-to-tr from-amber-600 to-amber-400 flex items-center justify-center text-stone-950 font-display font-extrabold text-sm shadow">
-              O
-            </div>
+           
             <span className="font-display font-extrabold text-lg tracking-tight text-white">
               Oxyfied
             </span>

@@ -84,9 +84,7 @@ export const DashboardLayout: React.FC = () => {
         {/* Sidebar Header Branding */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-stone-900 bg-[#0f0d0b]">
           <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded bg-gradient-to-tr from-royal-blue-600 to-light-blue-400 flex items-center justify-center text-white font-display font-extrabold text-sm shadow">
-              O
-            </div>
+           
             <span className="font-display font-extrabold text-lg text-white tracking-tight">
               Oxyfied LMS
             </span>

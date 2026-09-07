@@ -802,8 +802,8 @@ app.get('/api/videos/authorize', async (req: AuthRequest, res: Response): Promis
           }
         });
 
-        // Admins bypass enrollment checks
-        if (!enrollment && payload.role !== 'admin') {
+        // Admins and Mentors bypass enrollment checks to reference and review lesson videos
+        if (!enrollment && payload.role !== 'admin' && payload.role !== 'mentor') {
           res.status(403).json({ error: 'You do not have access. Please purchase or enroll in this course first.' });
           return;
         }
@@ -883,7 +883,7 @@ app.post('/api/payments/order', authenticateToken, async (req: AuthRequest, res:
       success: true,
       orderId: `order_${Math.random().toString(36).substring(2, 10)}`,
       amount: (amount || course.price) * 100, // cents/paise
-      currency: 'USD',
+      currency: 'INR',
       keyId: 'rzp_live_Oxyfied_key_xyz123'
     });
   } catch (error) {
@@ -1118,20 +1118,29 @@ app.get('/api/admin/users', authenticateToken, requireAdmin, async (req: Request
 
 app.put('/api/admin/users/:id', authenticateToken, requireAdmin, async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params as any;
-  const { name, email, phone, role, status } = req.body;
+  const { name, email, phone, role, status, password, passwordReset } = req.body;
   try {
-    const user = await prisma.user.update({
-      where: { id },
-      data: { name, email, phone, role, status }
-    });
-    // If updating a mentor user's name/email, sync with Mentor model
-    if (role === 'mentor') {
-      await prisma.mentor.updateMany({
-        where: { userId: id },
-        data: { name, email, status }
+    const updateData: any = { name, email, phone, role, status };
+    if (password || passwordReset) {
+      updateData.passwordHash = await bcrypt.hash(password || 'mentorpassword123', 10);
+      // Revoke any active sessions so the user logs in with new password
+      await prisma.userSession.updateMany({
+        where: { userId: id, revokedAt: null },
+        data: { revokedAt: new Date() }
       });
     }
-    await logActivity('USER_UPDATE', `User "${user.email}" role set to ${role}, status set to ${status}.`);
+    const user = await prisma.user.update({
+      where: { id },
+      data: updateData
+    });
+    // If updating a mentor user's name/email/status, sync with Mentor model
+    if (role === 'mentor' || user.role === 'mentor') {
+      await prisma.mentor.updateMany({
+        where: { userId: id },
+        data: { name, email, status: status || user.status, isActive: status === 'active' }
+      });
+    }
+    await logActivity('USER_UPDATE', `User "${user.email}" profile updated.`);
     res.json(user);
   } catch (err) {
     res.status(500).json({ error: 'Failed to update user.' });
@@ -1221,6 +1230,34 @@ app.post('/api/admin/mentors', authenticateToken, requireAdmin, async (req: Requ
   }
 });
 
+// Admin reset mentor password
+app.post('/api/admin/mentors/:id/reset-password', authenticateToken, requireAdmin, async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params as any;
+  const { password } = req.body;
+  const newPassword = password || 'mentorpassword123';
+  try {
+    const mentor = await prisma.mentor.findUnique({ where: { id } });
+    if (!mentor) {
+      res.status(404).json({ error: 'Mentor not found.' });
+      return;
+    }
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    await prisma.user.update({
+      where: { id: mentor.userId },
+      data: { passwordHash }
+    });
+    // Revoke sessions
+    await prisma.userSession.updateMany({
+      where: { userId: mentor.userId, revokedAt: null },
+      data: { revokedAt: new Date() }
+    });
+    await logActivity('MENTOR_PASSWORD_RESET', `Password reset for mentor "${mentor.name}".`);
+    res.json({ success: true, message: `Password reset to: ${newPassword}` });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to reset mentor password.' });
+  }
+});
+
 // Backward compatibility endpoints for courseService calls
 app.post('/api/admin/instructors', authenticateToken, requireAdmin, async (req: Request, res: Response): Promise<void> => {
   const { name, designation, bio, profileImage, email } = req.body;
@@ -1253,7 +1290,7 @@ app.post('/api/admin/instructors', authenticateToken, requireAdmin, async (req: 
 
 app.put('/api/admin/mentors/:id', authenticateToken, requireAdmin, async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params as any;
-  const { name, email, bio, expertise, profileImage, designation, status } = req.body;
+  const { name, email, bio, expertise, profileImage, designation, status, password } = req.body;
   try {
     const mentor = await prisma.mentor.update({
       where: { id },
@@ -1269,9 +1306,13 @@ app.put('/api/admin/mentors/:id', authenticateToken, requireAdmin, async (req: R
       }
     });
     // Sync to User table
+    const userUpdate: any = { name, email, avatar: profileImage, status };
+    if (password) {
+      userUpdate.passwordHash = await bcrypt.hash(password, 10);
+    }
     await prisma.user.update({
       where: { id: mentor.userId },
-      data: { name, email, avatar: profileImage, status }
+      data: userUpdate
     });
     await logActivity('MENTOR_UPDATE', `Mentor profile for "${mentor.name}" was updated.`);
     res.json(mentor);

@@ -117,6 +117,11 @@ export const courseService = {
     return response.data;
   },
 
+  resetMentorPassword: async (id: string, password?: string) => {
+    const response = await api.post(`/admin/mentors/${id}/reset-password`, { password });
+    return response.data;
+  },
+
   // Users CRUD (New)
   getUsers: async (params: any) => {
     const response = await api.get('/admin/users', { params });

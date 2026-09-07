@@ -563,7 +563,7 @@
 //                       <td className="px-6 py-4 text-stone-400">
 //                         {item.level} <span className="text-stone-600 font-mono">//</span> {item.duration}
 //                       </td>
-//                       <td className="px-6 py-4 font-bold text-white">${item.price}</td>
+//                       <td className="px-6 py-4 font-bold text-white">₹{item.price}</td>
 //                       <td className="px-6 py-4">
 //                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold border uppercase ${
 //                           item.status === 'available'
@@ -952,7 +952,7 @@
 
 //                   <div className="grid grid-cols-3 gap-3">
 //                     <div className="space-y-1.5">
-//                       <label className="text-[10px] font-bold uppercase tracking-widest text-amber-500/80">Selling Price ($)</label>
+//                       <label className="text-[10px] font-bold uppercase tracking-widest text-amber-500/80">Selling Price (₹)</label>
 //                       <input
 //                         type="number"
 //                         required
@@ -962,7 +962,7 @@
 //                       />
 //                     </div>
 //                     <div className="space-y-1.5">
-//                       <label className="text-[10px] font-bold uppercase tracking-widest text-amber-500/80">Discount Price ($)</label>
+//                       <label className="text-[10px] font-bold uppercase tracking-widest text-amber-500/80">Discount Price (₹)</label>
 //                       <input
 //                         type="number"
 //                         value={courseDiscountPrice}
@@ -1847,7 +1847,7 @@ export const AdminPanel: React.FC = () => {
                       <td className="px-6 py-4 text-stone-400">
                         {item.level} <span className="text-stone-600 font-mono">//</span> {item.duration}
                       </td>
-                      <td className="px-6 py-4 font-bold text-white">${item.price}</td>
+                      <td className="px-6 py-4 font-bold text-white">₹{item.price}</td>
                       <td className="px-6 py-4">
                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold border uppercase ${
                           item.status === 'available'
@@ -2245,7 +2245,7 @@ export const AdminPanel: React.FC = () => {
 
                   <div className="grid grid-cols-3 gap-3">
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold uppercase tracking-widest text-amber-500/80">Selling Price ($)</label>
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-amber-500/80">Selling Price (₹)</label>
                       <input
                         type="number"
                         required
@@ -2255,7 +2255,7 @@ export const AdminPanel: React.FC = () => {
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold uppercase tracking-widest text-amber-500/80">Discount Price ($)</label>
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-amber-500/80">Discount Price (₹)</label>
                       <input
                         type="number"
                         value={courseDiscountPrice}

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Plus, Edit, Trash2, ShieldAlert, Loader2, X, Check, 
-  Folder, GraduationCap, Video, Layers, Upload, CheckCircle2, AlertCircle 
+  Folder, GraduationCap, Video, Layers, Upload, CheckCircle2, AlertCircle, Play
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { courseService } from '../../../services/courseService';
+import { VideoPlayer } from '../../../components/ui/VideoPlayer';
 
 interface CategoryObject {
   id: string;
@@ -48,11 +49,21 @@ interface ModuleObject {
 }
 
 export const MentorCourses: React.FC = () => {
+  const navigate = useNavigate();
   const [courses, setCourses] = useState<CourseObject[]>([]);
   const [categories, setCategories] = useState<CategoryObject[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  // Video Preview Player state for mentor video reference
+  const [previewLesson, setPreviewLesson] = useState<{
+    courseId: string;
+    courseTitle: string;
+    lessonId: string;
+    lessonTitle: string;
+    duration?: string;
+  } | null>(null);
 
   // Edit Course Modal States
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -534,7 +545,7 @@ export const MentorCourses: React.FC = () => {
                       Classroom size: {course.studentsCount}
                     </span>
                     <span className="text-sm font-bold text-white font-mono">
-                      ${course.price}
+                      ₹{course.price}
                     </span>
                   </div>
 
@@ -546,6 +557,13 @@ export const MentorCourses: React.FC = () => {
                     >
                       <Layers className="w-3.5 h-3.5" />
                       Syllabus Manager
+                    </button>
+                    <button 
+                      onClick={() => navigate(`/dashboard/learn/${course.id}`)}
+                      className="p-2 text-amber-500 hover:text-amber-400 hover:bg-amber-500/10 border border-stone-850 hover:border-amber-500/30 rounded-lg transition-all flex items-center justify-center"
+                      title="Watch / Reference Course in Classroom"
+                    >
+                      <Play className="w-4 h-4 fill-current" />
                     </button>
                     <button 
                       onClick={() => openEditCourse(course)}
@@ -628,7 +646,7 @@ export const MentorCourses: React.FC = () => {
 
               {/* Price */}
               <div className="space-y-1.5">
-                <label className="font-bold text-stone-400 uppercase tracking-widest">Price ($ USD)</label>
+                <label className="font-bold text-stone-400 uppercase tracking-widest">Price (₹ INR)</label>
                 <input
                   type="number" required value={price} onChange={(e) => setPrice(e.target.value)}
                   className="w-full px-3 py-2 bg-stone-950 border border-stone-850 rounded-xl text-white focus:outline-none"
@@ -707,7 +725,15 @@ export const MentorCourses: React.FC = () => {
                 <span className="text-[10px] text-amber-500 font-bold uppercase tracking-widest">Syllabus Editor (Secure Ownership)</span>
                 <h3 className="font-display font-extrabold text-sm text-white truncate max-w-lg mt-0.5">{syllabusCourse.title}</h3>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 items-center">
+                <button 
+                  onClick={() => navigate(`/dashboard/learn/${syllabusCourse.id}`)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] uppercase font-bold rounded-lg transition-all"
+                  title="Open full interactive classroom view for this course"
+                >
+                  <Play className="w-3.5 h-3.5 fill-current" />
+                  Classroom View
+                </button>
                 <button 
                   onClick={openAddModule}
                   className="btn-primary flex items-center gap-1 px-3 py-1.5 text-[10px] uppercase font-bold rounded-lg"
@@ -784,6 +810,20 @@ export const MentorCourses: React.FC = () => {
                                 </div>
                               </div>
                               <div className="flex items-center gap-2">
+                                <button 
+                                  onClick={() => setPreviewLesson({
+                                    courseId: syllabusCourse.id,
+                                    courseTitle: syllabusCourse.title,
+                                    lessonId: lesson.id,
+                                    lessonTitle: lesson.title,
+                                    duration: lesson.duration
+                                  })}
+                                  className="text-[9px] font-bold text-amber-400 hover:text-amber-300 px-2 py-1 rounded bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition-all flex items-center gap-1"
+                                  title="Watch / Reference Lesson Video"
+                                >
+                                  <Play className="w-3 h-3 fill-current" />
+                                  Watch Video
+                                </button>
                                 <button 
                                   onClick={() => openResourceManager(lesson.id, lesson.title)}
                                   className="text-[9px] font-bold text-amber-500 hover:text-amber-450 px-2 py-1 rounded bg-stone-900 border border-stone-800 hover:border-amber-500/20 transition-all flex items-center gap-1"
@@ -1210,6 +1250,74 @@ export const MentorCourses: React.FC = () => {
                 className="btn-secondary px-5 py-2 text-xs font-bold rounded-xl"
               >
                 Close Manager
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- Video Preview Modal for Mentor Reference --- */}
+      {previewLesson && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/90 backdrop-blur-md">
+          <div className="bg-[#12100e] border border-stone-850 rounded-2xl max-w-4xl w-full overflow-hidden flex flex-col text-left shadow-2xl">
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-stone-850 flex items-center justify-between">
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded">
+                    Mentor Video Reference
+                  </span>
+                  {previewLesson.duration && (
+                    <span className="text-[10px] text-stone-500 font-mono">
+                      Duration: {previewLesson.duration}
+                    </span>
+                  )}
+                </div>
+                <h3 className="font-display font-extrabold text-sm text-white truncate max-w-lg mt-1">
+                  {previewLesson.lessonTitle}
+                </h3>
+                <p className="text-[11px] text-stone-400">{previewLesson.courseTitle}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    const cId = previewLesson.courseId;
+                    const lId = previewLesson.lessonId;
+                    setPreviewLesson(null);
+                    navigate(`/dashboard/learn/${cId}/${lId}`);
+                  }}
+                  className="btn-secondary px-3 py-1.5 text-xs font-bold rounded-lg flex items-center gap-1.5"
+                  title="Open in full interactive classroom player"
+                >
+                  <Play className="w-3.5 h-3.5 fill-current text-amber-500" />
+                  Classroom View
+                </button>
+                <button
+                  onClick={() => setPreviewLesson(null)}
+                  className="p-1 text-stone-500 hover:text-white rounded-lg hover:bg-stone-900"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Video Player Box */}
+            <div className="bg-black aspect-video w-full flex items-center justify-center">
+              <VideoPlayer
+                courseId={previewLesson.courseId}
+                lessonId={previewLesson.lessonId}
+                lessonTitle={previewLesson.lessonTitle}
+              />
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-3 border-t border-stone-850 bg-stone-950/60 flex items-center justify-between text-xs text-stone-400">
+              <span>Review lecture material, adaptive video stream, and timestamps.</span>
+              <button
+                onClick={() => setPreviewLesson(null)}
+                className="btn-primary px-4 py-1.5 text-xs font-bold rounded-lg"
+              >
+                Close Player
               </button>
             </div>
           </div>

@@ -268,14 +268,21 @@ export const Home: React.FC = () => {
               return (
                 <div 
                   key={course.id}
-                  className="bg-stone-900 border border-stone-850 rounded-2xl overflow-hidden flex flex-col justify-between hover:border-amber-500/20 transition-all duration-300 shadow-xl"
+                  onClick={() => {
+                    if (!isComingSoon) {
+                      navigate(`/courses/${course.slug}`);
+                    }
+                  }}
+                  className={`bg-stone-900 border border-stone-850 rounded-2xl overflow-hidden flex flex-col justify-between hover:border-amber-500/30 transition-all duration-300 shadow-xl group ${
+                    !isComingSoon ? 'cursor-pointer' : ''
+                  }`}
                 >
                   {/* Course Card Header Image */}
                   <div className="relative aspect-[16/10] overflow-hidden bg-stone-950 border-b border-stone-850/60">
                     <img
                       src={course.image}
                       alt={course.title}
-                      className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                     <span className="absolute top-3 left-3 px-2.5 py-1 bg-deep-navy-950/80 backdrop-blur text-white text-[10px] font-bold rounded-md uppercase tracking-wider border border-white/10">
                       {course.category}
@@ -290,8 +297,8 @@ export const Home: React.FC = () => {
                   {/* Course Card Body */}
                   <div className="p-6 flex-1 flex flex-col justify-between space-y-6">
                     <div className="space-y-3">
-                      <h3 className="font-display font-bold text-lg text-white hover:text-amber-400 transition-colors leading-snug">
-                        <Link to={isComingSoon ? '#' : `/courses/${course.slug}`}>{course.title}</Link>
+                      <h3 className="font-display font-bold text-lg text-white group-hover:text-amber-400 transition-colors leading-snug">
+                        {course.title}
                       </h3>
                       <p className="text-stone-450 text-xs leading-relaxed line-clamp-3">
                         {course.description}
@@ -327,7 +334,7 @@ export const Home: React.FC = () => {
 
                     <div className="flex items-center justify-between pt-3 border-t border-stone-850">
                       {isComingSoon ? (
-                        <div className="w-full space-y-2.5">
+                        <div className="w-full space-y-2.5" onClick={(e) => e.stopPropagation()}>
                           {notifiedEmails[course.id] ? (
                             <span className="text-[11px] text-amber-400 font-bold text-center block py-2 bg-amber-500/5 border border-amber-550/20 rounded-xl">
                               ✓ You will be notified when this program opens!
@@ -355,21 +362,25 @@ export const Home: React.FC = () => {
                         <>
                           <div className="flex flex-col">
                             <span className="text-stone-500 text-[10px] line-through font-semibold leading-none">
-                              ${course.originalPrice}
+                              ₹{course.originalPrice}
                             </span>
                             <span className="text-white font-display font-extrabold text-lg leading-tight">
-                              ${course.price}
+                              ₹{course.price}
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
                             <Link
                               to={`/courses/${course.slug}`}
+                              onClick={(e) => e.stopPropagation()}
                               className="btn-secondary px-3.5 py-2 text-xs font-bold rounded-lg"
                             >
                               Details
                             </Link>
                             <button
-                              onClick={() => handleEnrollClick(course)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEnrollClick(course);
+                              }}
                               className="btn-primary px-3.5 py-2 text-xs font-bold rounded-lg"
                             >
                               Enroll

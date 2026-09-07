@@ -24,10 +24,17 @@ export const Login: React.FC = () => {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting }
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema)
   });
+
+  const setDemoCredentials = (emailVal: string, passwordVal: string) => {
+    setValue('email', emailVal, { shouldValidate: true });
+    setValue('password', passwordVal, { shouldValidate: true });
+    setErrorMsg(null);
+  };
 
   const onSubmit = async (data: LoginFormData) => {
     setErrorMsg(null);
@@ -89,15 +96,75 @@ export const Login: React.FC = () => {
         {/* Header Logo */}
         <div className="text-center space-y-2">
           <Link to="/" className="inline-flex items-center gap-2 group justify-center">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-amber-600 to-amber-400 flex items-center justify-center text-stone-950 font-display font-extrabold text-sm shadow">
-              O
-            </div>
             <span className="font-display font-extrabold text-lg tracking-tight text-white">
               Oxyfied
             </span>
           </Link>
           <h2 className="text-xl font-display font-bold text-white mt-2">Welcome Back</h2>
           <p className="text-xs text-stone-400">Sign in to resume building tech capabilities.</p>
+        </div>
+
+        {/* Demo Credentials Quick Switcher */}
+        <div className="p-3.5 bg-stone-900/90 border border-stone-800 rounded-xl space-y-2.5">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-500">
+              Quick Demo Accounts
+            </span>
+            <span className="text-[9px] text-stone-500">Click to autofill</span>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setDemoCredentials('evelyn.vance@oxyfied.com', 'mentorpassword123')}
+              className="p-2 text-left rounded-lg bg-stone-950/80 hover:bg-stone-850 border border-stone-800/80 hover:border-amber-500/40 transition-all group"
+            >
+              <span className="text-[10px] font-bold text-stone-200 block group-hover:text-amber-400">
+                Mentor (Dr. Evelyn)
+              </span>
+              <span className="text-[8px] text-stone-500 font-mono block truncate">
+                evelyn.vance@oxyfied.com
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setDemoCredentials('michael.kovac@oxyfied.com', 'mentorpassword123')}
+              className="p-2 text-left rounded-lg bg-stone-950/80 hover:bg-stone-850 border border-stone-800/80 hover:border-amber-500/40 transition-all group"
+            >
+              <span className="text-[10px] font-bold text-stone-200 block group-hover:text-amber-400">
+                Mentor (Michael K.)
+              </span>
+              <span className="text-[8px] text-stone-500 font-mono block truncate">
+                michael.kovac@oxyfied.com
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setDemoCredentials('admin@oxyfied.com', 'adminpassword123')}
+              className="p-2 text-left rounded-lg bg-stone-950/80 hover:bg-stone-850 border border-stone-800/80 hover:border-amber-500/40 transition-all group"
+            >
+              <span className="text-[10px] font-bold text-stone-200 block group-hover:text-amber-400">
+                Administrator
+              </span>
+              <span className="text-[8px] text-stone-500 font-mono block truncate">
+                admin@oxyfied.com
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setDemoCredentials('student@oxyfied.com', 'studentpassword123')}
+              className="p-2 text-left rounded-lg bg-stone-950/80 hover:bg-stone-850 border border-stone-800/80 hover:border-amber-500/40 transition-all group"
+            >
+              <span className="text-[10px] font-bold text-stone-200 block group-hover:text-amber-400">
+                Student
+              </span>
+              <span className="text-[8px] text-stone-500 font-mono block truncate">
+                student@oxyfied.com
+              </span>
+            </button>
+          </div>
         </div>
 
         {errorMsg && (

@@ -14,7 +14,7 @@ export const Learning: React.FC = () => {
   const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>();
   const navigate = useNavigate();
   
-  const { isEnrolled, completeLesson, isLessonCompleted } = useAuth();
+  const { user, isEnrolled, completeLesson, isLessonCompleted } = useAuth();
   const [activeTab, setActiveTab] = useState<'desc' | 'resources' | 'notes' | 'project'>('desc');
   const [noteInput, setNoteInput] = useState('');
   const [savedNotes, setSavedNotes] = useState<string[]>([]);
@@ -82,8 +82,8 @@ export const Learning: React.FC = () => {
     fetchSubsAndResources();
   }, [course?.id, activeLesson?.id]);
 
-  // Security guard logic: checking enrollment
-  const userHasAccess = isEnrolled(courseId || '');
+  // Security guard logic: checking enrollment (mentors and admins have full access for video referencing and management)
+  const userHasAccess = isEnrolled(courseId || '') || user?.role === 'mentor' || user?.role === 'admin';
 
   // Redirect if unauthorized
   useEffect(() => {
@@ -175,13 +175,20 @@ export const Learning: React.FC = () => {
       <main className="lg:col-span-8 space-y-6">
         
         {/* Breadcrumb back navigation */}
-        <Link 
-          to="/dashboard/my-courses" 
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-400 hover:text-white transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to My Courses
-        </Link>
+        <div className="flex items-center justify-between">
+          <Link 
+            to={user?.role === 'mentor' ? '/dashboard/mentor/courses' : user?.role === 'admin' ? '/dashboard/admin/courses' : '/dashboard/my-courses'} 
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-400 hover:text-white transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            {user?.role === 'mentor' ? 'Back to Mentor Courses' : user?.role === 'admin' ? 'Back to Admin Courses' : 'Back to My Courses'}
+          </Link>
+          {(user?.role === 'mentor' || user?.role === 'admin') && (
+            <span className="px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/25 text-[10px] font-bold uppercase tracking-wider">
+              {user?.role === 'mentor' ? 'Mentor Video Reference' : 'Admin Preview View'}
+            </span>
+          )}
+        </div>
 
         {/* SECURE VIDEO PLAYER */}
         <VideoPlayer

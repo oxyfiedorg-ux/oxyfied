@@ -49,7 +49,7 @@ export const FloatingSupport: React.FC = () => {
             <div className="p-4 space-y-3">
               {/* Option: WhatsApp */}
               <a
-                href="https://wa.me/placeholder" 
+                href="https://wa.me/918547755667" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 p-3 bg-emerald-50 hover:bg-emerald-100/70 border border-emerald-100 text-slate-800 rounded-xl transition-all group"
@@ -65,7 +65,7 @@ export const FloatingSupport: React.FC = () => {
 
               {/* Option: Email */}
               <a
-                href="mailto:support@Oxyfied.com"
+                href="mailto:support@oxyfied.com"
                 className="flex items-center gap-3 p-3 bg-royal-blue-50 hover:bg-royal-blue-100/70 border border-royal-blue-100 text-slate-800 rounded-xl transition-all group"
               >
                 <div className="p-2 rounded-lg bg-royal-blue-900 text-white">
@@ -73,7 +73,7 @@ export const FloatingSupport: React.FC = () => {
                 </div>
                 <div>
                   <span className="text-sm font-semibold text-slate-900 block group-hover:text-royal-blue-800">Email Support</span>
-                  <span className="text-[11px] text-slate-500 block">support@Oxyfied.com</span>
+                  <span className="text-[11px] text-slate-500 block">support@oxyfied.com</span>
                 </div>
               </a>
 

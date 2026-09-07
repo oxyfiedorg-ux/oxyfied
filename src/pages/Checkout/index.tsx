@@ -81,7 +81,7 @@ export const Checkout: React.FC = () => {
     const code = couponCode.trim().toUpperCase();
     if (code === 'WELCOME10') {
       setDiscount(10);
-      setCouponSuccess('10$ Welcome discount applied!');
+      setCouponSuccess('₹10 Welcome discount applied!');
     } else if (code === 'Oxyfied60') {
       setCouponError('This course already has a 60% early discount applied to the price!');
     } else {
@@ -206,7 +206,7 @@ export const Checkout: React.FC = () => {
                 ) : (
                   <>
                     <Lock className="w-4 h-4" />
-                    Pay & Enroll (${finalPrice})
+                    Pay & Enroll (₹{finalPrice})
                   </>
                 )}
               </button>
@@ -269,17 +269,17 @@ export const Checkout: React.FC = () => {
             <div className="space-y-2.5 text-xs border-t border-stone-850 pt-4 font-semibold text-stone-400">
               <div className="flex justify-between">
                 <span>Subtotal Price</span>
-                <span className="text-stone-200">${course.price}</span>
+                <span className="text-stone-200">₹{course.price}</span>
               </div>
               {discount > 0 && (
                 <div className="flex justify-between text-emerald-450">
                   <span>Coupon Discount</span>
-                  <span>-${discount}</span>
+                  <span>-₹{discount}</span>
                 </div>
               )}
               <div className="flex justify-between text-sm font-bold text-white border-t border-stone-850 pt-3">
                 <span>Final Price</span>
-                <span className="text-amber-450 text-base font-extrabold">${finalPrice}</span>
+                <span className="text-amber-450 text-base font-extrabold">₹{finalPrice}</span>
               </div>
             </div>
           </aside>

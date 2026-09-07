@@ -17,9 +17,7 @@ export const Footer: React.FC = () => {
           {/* Logo & Description */}
           <div className="lg:col-span-2 space-y-4">
             <Link to="/" className="flex items-center gap-2 group">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-amber-600 to-amber-400 flex items-center justify-center text-stone-950 font-display font-extrabold text-sm shadow">
-                O
-              </div>
+              
               <span className="font-display font-extrabold text-lg tracking-tight text-white">
                 Oxyfied
               </span>

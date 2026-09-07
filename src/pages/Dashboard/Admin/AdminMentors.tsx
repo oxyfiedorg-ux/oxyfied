@@ -152,14 +152,12 @@ export const AdminMentors: React.FC = () => {
 
     try {
       setLoading(true);
-      // The backend has a generic put/reset handler or we can call updates.
-      // We will make a PUT request to reset the password by sending custom flag.
-      await courseService.updateUser(mentor.userId, { passwordReset: true, role: 'mentor', status: mentor.status });
+      await courseService.resetMentorPassword(mentor.id);
       setSuccessMsg(`Successfully reset password for "${mentor.name}" to default: mentorpassword123`);
       setTimeout(() => setSuccessMsg(null), 6000);
       setError(null);
-    } catch (err) {
-      setError('Password reset request failed.');
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Password reset request failed.');
     } finally {
       setLoading(false);
     }

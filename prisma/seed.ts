@@ -25,8 +25,8 @@ async function main() {
   // Hash passwords
   const adminPasswordHash = await bcrypt.hash('adminpassword123', 10);
   const studentPasswordHash = await bcrypt.hash('studentpassword123', 10);
-  const mentor1PasswordHash = await bcrypt.hash('evelynpassword123', 10);
-  const mentor2PasswordHash = await bcrypt.hash('michaelpassword123', 10);
+  const mentor1PasswordHash = await bcrypt.hash('mentorpassword123', 10);
+  const mentor2PasswordHash = await bcrypt.hash('mentorpassword123', 10);
 
   const admin = await prisma.user.create({
     data: {
@@ -34,7 +34,7 @@ async function main() {
       email: 'admin@oxyfied.com',
       passwordHash: adminPasswordHash,
       role: 'admin',
-      phone: '+1 555-0100',
+      phone: '+91 8547755667',
       avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=150&auto=format&fit=crop'
     }
   });
@@ -45,7 +45,7 @@ async function main() {
       email: 'student@oxyfied.com',
       passwordHash: studentPasswordHash,
       role: 'student',
-      phone: '+1 555-0199',
+      phone: '+91 8547755667',
       avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150&auto=format&fit=crop'
     }
   });
@@ -56,7 +56,7 @@ async function main() {
       email: 'evelyn.vance@oxyfied.com',
       passwordHash: mentor1PasswordHash,
       role: 'mentor',
-      phone: '+1 555-0201',
+      phone: '+91 8547755667',
       avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=150&auto=format&fit=crop'
     }
   });
@@ -67,7 +67,7 @@ async function main() {
       email: 'michael.kovac@oxyfied.com',
       passwordHash: mentor2PasswordHash,
       role: 'mentor',
-      phone: '+1 555-0202',
+      phone: '+91 8547755667',
       avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=150&auto=format&fit=crop'
     }
   });

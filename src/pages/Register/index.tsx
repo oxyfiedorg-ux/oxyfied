@@ -53,9 +53,7 @@ export const Register: React.FC = () => {
         {/* Header */}
         <div className="text-center space-y-2">
           <Link to="/" className="inline-flex items-center gap-2 justify-center">
-            <div className="w-8 h-8 rounded bg-gradient-to-tr from-amber-600 to-amber-400 flex items-center justify-center text-stone-950 font-display font-extrabold text-sm shadow">
-              O
-            </div>
+          
             <span className="font-display font-extrabold text-lg tracking-tight text-white">
               Oxyfied
             </span>
@@ -121,7 +119,7 @@ export const Register: React.FC = () => {
               <input
                 type="text"
                 id="reg-phone"
-                placeholder="e.g. 555-019-9284"
+                placeholder="e.g. +91 8547755667"
                 {...register('phone')}
                 className={`w-full pl-9 pr-3 py-2 bg-stone-900 border rounded-lg text-xs text-white placeholder-stone-500 focus:outline-none focus:bg-stone-950 transition-all ${
                   errors.phone ? 'border-red-500 focus:border-red-550' : 'border-stone-800 focus:border-amber-500'

@@ -382,8 +382,8 @@ export const CourseDetails: React.FC = () => {
             <div className="space-y-1">
               <span className="text-[10px] uppercase font-bold text-stone-500 tracking-wider">Course Pricing</span>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-display font-extrabold text-white">${course.price}</span>
-                <span className="text-sm text-stone-505 line-through font-semibold">${course.originalPrice}</span>
+                <span className="text-2xl font-display font-extrabold text-white">₹{course.price}</span>
+                <span className="text-sm text-stone-505 line-through font-semibold">₹{course.originalPrice}</span>
                 <span className="text-xs font-bold text-emerald-450 bg-emerald-950/20 border border-emerald-900/30 px-2 py-0.5 rounded">60% Off</span>
               </div>
             </div>

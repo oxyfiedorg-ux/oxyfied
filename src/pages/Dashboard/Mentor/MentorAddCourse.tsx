@@ -186,7 +186,7 @@ export const MentorAddCourse: React.FC = () => {
 
           {/* Price */}
           <div className="space-y-1.5">
-            <label className="font-bold text-stone-400 uppercase tracking-widest">Price ($ USD)</label>
+            <label className="font-bold text-stone-400 uppercase tracking-widest">Price (₹ INR)</label>
             <input
               type="number"
               required

@@ -49,12 +49,12 @@ export const Contact: React.FC = () => {
     {
       id: 'faq-c2',
       title: 'How do I request a refund?',
-      content: 'We offer a 14-day refund window on all core tracks, provided you have completed less than 20% of the lessons and have not downloaded multiple course lab folders. Email support@Oxyfied.com directly to initiate a request.'
+      content: 'We offer a 14-day refund window on all core tracks, provided you have completed less than 20% of the lessons and have not downloaded multiple course lab folders. Email support@oxyfied.com directly to initiate a request.'
     },
     {
       id: 'faq-c3',
       title: 'How can I apply to become an instructor?',
-      content: 'If you have over 5 years of production technology experience in cloud engineering, DevOps, data systems, or cybersecurity operations and a passion for project-based learning, email your resume to careers@Oxyfied.com.'
+      content: 'If you have over 5 years of production technology experience in cloud engineering, DevOps, data systems, or cybersecurity operations and a passion for project-based learning, email your resume to info@oxyfied.com.'
     }
   ].map((faq) => ({
     id: faq.id,
@@ -149,7 +149,7 @@ export const Contact: React.FC = () => {
                 <input
                   type="text"
                   id="contact-phone"
-                  placeholder="e.g. +1 555-0100"
+                  placeholder="e.g. +91 8547755667"
                   {...register('phone')}
                   className="w-full px-3 py-2 bg-stone-955 border border-stone-800 rounded-lg text-xs text-white placeholder-stone-605 focus:outline-none focus:bg-stone-950 focus:border-amber-500 transition-all"
                 />
@@ -214,7 +214,7 @@ export const Contact: React.FC = () => {
                 <Mail className="w-4.5 h-4.5 text-amber-500 mt-0.5" />
                 <div>
                   <span className="font-bold text-white block">General Support</span>
-                  <a href="mailto:support@Oxyfied.com" className="text-amber-400 hover:text-amber-300 hover:underline">support@Oxyfied.com</a>
+                  <a href="mailto:support@oxyfied.com" className="text-amber-400 hover:text-amber-300 hover:underline">support@oxyfied.com</a>
                 </div>
               </div>
 
@@ -222,7 +222,7 @@ export const Contact: React.FC = () => {
                 <Phone className="w-4.5 h-4.5 text-amber-500 mt-0.5" />
                 <div>
                   <span className="font-bold text-white block">Phone Queries</span>
-                  <span className="text-stone-400">+1 (555) 019-2844</span>
+                  <a href="tel:+918547755667" className="text-stone-400 hover:text-amber-400 transition-colors block">+91 8547755667</a>
                 </div>
               </div>
 
