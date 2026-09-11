@@ -559,7 +559,7 @@ const seedDefaultNotifications = async (userId: string, role: string) => {
         },
         {
           title: 'Course Tracks Synchronized',
-          message: 'Technical cybersecurity and data engineering curriculum tracks are online and ready for student enrollments.',
+          message: 'Technical Master Programs and Tools & Upskills curriculum tracks are online and ready for student enrollments.',
           type: 'course',
           link: '/admin/dashboard/courses',
           createdAt: new Date(now.getTime() - 20 * 60 * 1000)
@@ -569,16 +569,16 @@ const seedDefaultNotifications = async (userId: string, role: string) => {
       sampleNotifications.push(
         {
           title: 'Welcome to Oxyfied Learning Platform',
-          message: 'Explore our practical, industry-grade certificate programs and start accelerating your technical career.',
+          message: 'Explore our practical, industry-grade Master Programs and Tools & Upskills courses to accelerate your career.',
           type: 'info',
           link: '/courses',
           createdAt: new Date(now.getTime() - 4 * 60 * 60 * 1000)
         },
         {
-          title: 'Cybersecurity Certificate Track Available',
-          message: 'Dive into practical ethical hacking, defense architectures, and hands-on laboratory exercises.',
+          title: 'Master Program in Data Science and AI Available',
+          message: 'Dive into practical machine learning, deep neural networks, and 50+ real-world industry projects.',
           type: 'course',
-          link: '/courses/cybersecurity',
+          link: '/courses/master-program-data-science-ai',
           createdAt: new Date(now.getTime() - 90 * 60 * 1000)
         },
         {
@@ -691,7 +691,7 @@ app.get('/api/courses', async (req: Request, res: Response): Promise<void> => {
       where: { isActive: true },
       include: {
         category: { select: { name: true, slug: true } },
-        mentor: { select: { name: true, profileImage: true } },
+        mentor: { select: { id: true, name: true, profileImage: true } },
         modules: {
           orderBy: { sortOrder: 'asc' },
           include: {
@@ -717,21 +717,25 @@ app.get('/api/courses', async (req: Request, res: Response): Promise<void> => {
         slug: c.slug,
         title: c.title,
         category: c.category.name,
-        description: c.shortDescription,
+        description: c.description || c.shortDescription,
         image: c.thumbnail,
         price: c.price,
         originalPrice: c.discountPrice || c.price, // map back
         duration: c.duration,
-        lessons: lessonCount,
+        lessons: lessonCount || 50,
         level: c.level,
-        rating: 4.8, // static rating fallback for SEO UI
-        students: 1200, // static students fallback
+        rating: 4.9, // static rating fallback for SEO UI
+        students: c.status === 'coming-soon' ? 0 : 1500, // static students fallback
         status: c.status as 'available' | 'coming-soon',
         featured: c.isFeatured,
         skills: c.skills,
+        requirements: c.requirements,
+        whoIsItFor: c.whoIsItFor,
         instructor: {
+          id: c.mentor.id,
           name: c.mentor.name,
-          profileImage: c.mentor.profileImage
+          profileImage: c.mentor.profileImage,
+          role: 'Lead Mentor'
         },
         modules: c.modules.map(mod => ({
           id: mod.id,

@@ -48,31 +48,33 @@ export const Register: React.FC = () => {
   };
 
   return (
-    <div className="bg-stone-950 min-h-screen flex items-center justify-center py-16 px-4">
-      <div className="w-full max-w-md bg-[#141210] border border-stone-850 p-8 rounded-2xl shadow-2xl space-y-6 text-left">
+    <div className="bg-warm-ivory min-h-screen flex items-center justify-center py-16 px-4">
+      <div className="w-full max-w-md bg-warm-white border border-light-taupe p-8 rounded-2xl shadow-lg space-y-6 text-left">
         {/* Header */}
         <div className="text-center space-y-2">
           <Link to="/" className="inline-flex items-center gap-2 justify-center">
-          
-            <span className="font-display font-extrabold text-lg tracking-tight text-white">
+            <span className="w-8 h-8 rounded-lg bg-deep-navy text-warm-ivory flex items-center justify-center font-display font-black text-base shadow-sm">
+              O
+            </span>
+            <span className="font-display font-extrabold text-xl tracking-tight text-deep-navy">
               Oxyfied
             </span>
           </Link>
-          <h2 className="text-xl font-display font-bold text-white mt-2">Create Account</h2>
-          <p className="text-xs text-stone-400">Sign up to begin building technologies today.</p>
+          <h2 className="text-2xl font-display font-bold text-deep-navy mt-2">Create Account</h2>
+          <p className="text-xs sm:text-sm text-warm-gray">Sign up to begin building technologies today.</p>
         </div>
 
         {errorMsg && (
-          <div className="p-3 bg-red-950/20 border border-red-900/50 text-red-300 text-xs rounded-xl flex items-center gap-2 font-medium">
-            <ShieldAlert className="w-4 h-4 text-red-500 flex-shrink-0" />
+          <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2 font-medium">
+            <ShieldAlert className="w-4 h-4 text-red-600 flex-shrink-0" />
             <span>{errorMsg}</span>
           </div>
         )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Field: Name */}
-          <div className="space-y-1">
-            <label htmlFor="reg-name" className="text-[10px] font-bold text-stone-400 uppercase tracking-widest block">
+          <div className="space-y-1.5">
+            <label htmlFor="reg-name" className="text-[10px] font-bold text-deep-navy uppercase tracking-widest block">
               Full Name
             </label>
             <div className="relative">
@@ -81,38 +83,38 @@ export const Register: React.FC = () => {
                 id="reg-name"
                 placeholder="e.g. John Doe"
                 {...register('name')}
-                className={`w-full pl-9 pr-3 py-2 bg-stone-900 border rounded-lg text-xs text-white placeholder-stone-500 focus:outline-none focus:bg-stone-950 transition-all ${
-                  errors.name ? 'border-red-500 focus:border-red-550' : 'border-stone-800 focus:border-amber-500'
+                className={`w-full pl-9 pr-3 py-2.5 bg-warm-ivory border rounded-xl text-xs text-deep-navy placeholder-warm-gray/60 focus:outline-none focus:bg-warm-white transition-all ${
+                  errors.name ? 'border-red-500 focus:border-red-500' : 'border-light-taupe focus:border-burnt-orange'
                 }`}
               />
-              <User className="w-4 h-4 text-stone-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              <User className="w-4 h-4 text-warm-gray absolute left-3 top-1/2 -translate-y-1/2" />
             </div>
-            {errors.name && <span className="text-[10px] text-red-500 font-medium">{errors.name.message}</span>}
+            {errors.name && <span className="text-[10px] text-red-600 font-medium">{errors.name.message}</span>}
           </div>
 
           {/* Field: Email */}
-          <div className="space-y-1">
-            <label htmlFor="reg-email" className="text-[10px] font-bold text-stone-400 uppercase tracking-widest block">
+          <div className="space-y-1.5">
+            <label htmlFor="reg-email" className="text-[10px] font-bold text-deep-navy uppercase tracking-widest block">
               Email Address
             </label>
             <div className="relative">
               <input
                 type="email"
                 id="reg-email"
-                placeholder="e.g. john@Oxyfied.com"
+                placeholder="e.g. john@oxyfied.com"
                 {...register('email')}
-                className={`w-full pl-9 pr-3 py-2 bg-stone-900 border rounded-lg text-xs text-white placeholder-stone-500 focus:outline-none focus:bg-stone-950 transition-all ${
-                  errors.email ? 'border-red-500 focus:border-red-550' : 'border-stone-800 focus:border-amber-500'
+                className={`w-full pl-9 pr-3 py-2.5 bg-warm-ivory border rounded-xl text-xs text-deep-navy placeholder-warm-gray/60 focus:outline-none focus:bg-warm-white transition-all ${
+                  errors.email ? 'border-red-500 focus:border-red-500' : 'border-light-taupe focus:border-burnt-orange'
                 }`}
               />
-              <Mail className="w-4 h-4 text-stone-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Mail className="w-4 h-4 text-warm-gray absolute left-3 top-1/2 -translate-y-1/2" />
             </div>
-            {errors.email && <span className="text-[10px] text-red-500 font-medium">{errors.email.message}</span>}
+            {errors.email && <span className="text-[10px] text-red-600 font-medium">{errors.email.message}</span>}
           </div>
 
           {/* Field: Phone */}
-          <div className="space-y-1">
-            <label htmlFor="reg-phone" className="text-[10px] font-bold text-stone-400 uppercase tracking-widest block">
+          <div className="space-y-1.5">
+            <label htmlFor="reg-phone" className="text-[10px] font-bold text-deep-navy uppercase tracking-widest block">
               Phone Number
             </label>
             <div className="relative">
@@ -121,18 +123,18 @@ export const Register: React.FC = () => {
                 id="reg-phone"
                 placeholder="e.g. +91 8547755667"
                 {...register('phone')}
-                className={`w-full pl-9 pr-3 py-2 bg-stone-900 border rounded-lg text-xs text-white placeholder-stone-500 focus:outline-none focus:bg-stone-950 transition-all ${
-                  errors.phone ? 'border-red-500 focus:border-red-550' : 'border-stone-800 focus:border-amber-500'
+                className={`w-full pl-9 pr-3 py-2.5 bg-warm-ivory border rounded-xl text-xs text-deep-navy placeholder-warm-gray/60 focus:outline-none focus:bg-warm-white transition-all ${
+                  errors.phone ? 'border-red-500 focus:border-red-500' : 'border-light-taupe focus:border-burnt-orange'
                 }`}
               />
-              <Phone className="w-4 h-4 text-stone-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Phone className="w-4 h-4 text-warm-gray absolute left-3 top-1/2 -translate-y-1/2" />
             </div>
-            {errors.phone && <span className="text-[10px] text-red-500 font-medium">{errors.phone.message}</span>}
+            {errors.phone && <span className="text-[10px] text-red-600 font-medium">{errors.phone.message}</span>}
           </div>
 
           {/* Field: Password */}
-          <div className="space-y-1">
-            <label htmlFor="reg-password" className="text-[10px] font-bold text-stone-400 uppercase tracking-widest block">
+          <div className="space-y-1.5">
+            <label htmlFor="reg-password" className="text-[10px] font-bold text-deep-navy uppercase tracking-widest block">
               Password
             </label>
             <div className="relative">
@@ -141,18 +143,18 @@ export const Register: React.FC = () => {
                 id="reg-password"
                 placeholder="••••••••"
                 {...register('password')}
-                className={`w-full pl-9 pr-3 py-2 bg-stone-900 border rounded-lg text-xs text-white placeholder-stone-500 focus:outline-none focus:bg-stone-950 transition-all ${
-                  errors.password ? 'border-red-500 focus:border-red-550' : 'border-stone-800 focus:border-amber-500'
+                className={`w-full pl-9 pr-3 py-2.5 bg-warm-ivory border rounded-xl text-xs text-deep-navy placeholder-warm-gray/60 focus:outline-none focus:bg-warm-white transition-all ${
+                  errors.password ? 'border-red-500 focus:border-red-500' : 'border-light-taupe focus:border-burnt-orange'
                 }`}
               />
-              <Key className="w-4 h-4 text-stone-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Key className="w-4 h-4 text-warm-gray absolute left-3 top-1/2 -translate-y-1/2" />
             </div>
-            {errors.password && <span className="text-[10px] text-red-500 font-medium">{errors.password.message}</span>}
+            {errors.password && <span className="text-[10px] text-red-600 font-medium">{errors.password.message}</span>}
           </div>
 
           {/* Field: Confirm Password */}
-          <div className="space-y-1">
-            <label htmlFor="reg-confirm" className="text-[10px] font-bold text-stone-400 uppercase tracking-widest block">
+          <div className="space-y-1.5">
+            <label htmlFor="reg-confirm" className="text-[10px] font-bold text-deep-navy uppercase tracking-widest block">
               Confirm Password
             </label>
             <div className="relative">
@@ -161,29 +163,29 @@ export const Register: React.FC = () => {
                 id="reg-confirm"
                 placeholder="••••••••"
                 {...register('confirmPassword')}
-                className={`w-full pl-9 pr-3 py-2 bg-stone-900 border rounded-lg text-xs text-white placeholder-stone-500 focus:outline-none focus:bg-stone-950 transition-all ${
-                  errors.confirmPassword ? 'border-red-500 focus:border-red-550' : 'border-stone-800 focus:border-amber-500'
+                className={`w-full pl-9 pr-3 py-2.5 bg-warm-ivory border rounded-xl text-xs text-deep-navy placeholder-warm-gray/60 focus:outline-none focus:bg-warm-white transition-all ${
+                  errors.confirmPassword ? 'border-red-500 focus:border-red-500' : 'border-light-taupe focus:border-burnt-orange'
                 }`}
               />
-              <Key className="w-4 h-4 text-stone-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Key className="w-4 h-4 text-warm-gray absolute left-3 top-1/2 -translate-y-1/2" />
             </div>
-            {errors.confirmPassword && <span className="text-[10px] text-red-500 font-medium">{errors.confirmPassword.message}</span>}
+            {errors.confirmPassword && <span className="text-[10px] text-red-600 font-medium">{errors.confirmPassword.message}</span>}
           </div>
 
           <button
             type="submit"
             disabled={isSubmitting}
-            className="btn-primary w-full py-3.5 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow"
+            className="btn-primary w-full py-3.5 font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow"
           >
             {isSubmitting ? 'Registering Account...' : 'Sign Up'}
             <UserPlus className="w-4 h-4" />
           </button>
         </form>
 
-        <div className="border-t border-stone-850 pt-4 text-center">
-          <p className="text-xs text-stone-400">
+        <div className="border-t border-light-taupe pt-4 text-center">
+          <p className="text-xs text-warm-gray">
             Already have an account?{' '}
-            <Link to="/login" className="font-bold text-amber-500 hover:text-amber-450">
+            <Link to="/login" className="font-bold text-burnt-orange hover:text-deep-orange">
               Sign In
             </Link>
           </p>

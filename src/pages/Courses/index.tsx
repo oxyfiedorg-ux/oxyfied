@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { Search, Clock, BookOpen, Star, RefreshCw, AlertCircle } from 'lucide-react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { Search, RefreshCw, AlertCircle, Layers } from 'lucide-react';
 import { courseService } from '../../services/courseService';
 import type { Course } from '../../types';
 import { SEO } from '../../components/common/SEO';
+import { CourseCard } from '../../components/common/CourseCard';
 
 export const Courses: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -27,9 +28,13 @@ export const Courses: React.FC = () => {
     if (urlSearch !== null) {
       setSearchTerm(urlSearch);
     }
+    const urlCat = searchParams.get('category');
+    if (urlCat !== null) {
+      setSelectedCategory(urlCat);
+    }
   }, [searchParams]);
 
-  // Fetch courses from Neon on mount
+  // Fetch courses on mount
   useEffect(() => {
     const loadCourses = async () => {
       try {
@@ -39,7 +44,7 @@ export const Courses: React.FC = () => {
         setCourses(data);
       } catch (err) {
         console.error('Failed to load courses:', err);
-        setError('Database server is temporarily offline. Please check back later.');
+        setError('Unable to load programs at this moment. Please refresh the page.');
       } finally {
         setIsLoading(false);
       }
@@ -66,11 +71,29 @@ export const Courses: React.FC = () => {
       course.skills.some((s) => s.toLowerCase().includes(searchTerm.toLowerCase()));
 
     // 2. Category filter
-    const matchesCategory =
-      selectedCategory === 'all' ||
-      (selectedCategory === 'available' && course.status === 'available') ||
-      (selectedCategory === 'coming-soon' && course.status === 'coming-soon') ||
-      course.category.toLowerCase() === selectedCategory.toLowerCase();
+    let matchesCategory = true;
+    if (selectedCategory === 'Coming Soon') {
+      matchesCategory = course.status === 'coming-soon' || course.category === 'Coming Soon';
+    } else if (selectedCategory === 'Cybersecurity') {
+      matchesCategory =
+        (course.status !== 'coming-soon' && course.category !== 'Coming Soon') &&
+        (course.category === 'Cybersecurity' ||
+          course.category.toLowerCase().includes('cyber') ||
+          course.category.toLowerCase().includes('security') ||
+          course.slug.includes('cyber') ||
+          course.slug.includes('security'));
+    } else if (selectedCategory === 'Data Science') {
+      matchesCategory =
+        (course.status !== 'coming-soon' && course.category !== 'Coming Soon') &&
+        (course.category === 'Data Science' ||
+          course.category.toLowerCase().includes('data') ||
+          course.slug.includes('data-science') ||
+          course.slug.includes('data-analytics') ||
+          course.slug.includes('machine-learning') ||
+          course.slug.includes('power-bi'));
+    } else if (selectedCategory !== 'all') {
+      matchesCategory = course.category.toLowerCase() === selectedCategory.toLowerCase();
+    }
 
     // 3. Level filter
     const matchesLevel =
@@ -79,10 +102,10 @@ export const Courses: React.FC = () => {
 
     // 4. Price filter
     let matchesPrice = true;
-    if (selectedPrice === 'free') {
-      matchesPrice = course.price === 0;
-    } else if (selectedPrice === 'paid') {
-      matchesPrice = course.price > 0;
+    if (selectedPrice === 'under-10k') {
+      matchesPrice = course.price < 10000;
+    } else if (selectedPrice === 'master-level') {
+      matchesPrice = course.price >= 10000;
     }
 
     return matchesSearch && matchesCategory && matchesLevel && matchesPrice;
@@ -103,33 +126,110 @@ export const Courses: React.FC = () => {
     return 0;
   });
 
+  const cyberCount = courses.filter(c => c.category === 'Cybersecurity' || c.category.toLowerCase().includes('cyber') || c.category.toLowerCase().includes('security')).length;
+  const dataScienceCount = courses.filter(c => c.category === 'Data Science' || c.category.toLowerCase().includes('data')).length;
+  const comingSoonCount = courses.filter(c => c.status === 'coming-soon' || c.category === 'Coming Soon').length;
+
   return (
-    <div className="bg-stone-955 min-h-screen py-12">
+    <div className="bg-warm-ivory text-deep-navy min-h-screen py-12">
       <SEO 
-        title="Explore Technology Programs" 
-        description="Browse available tech training tracks at Oxyfied. Learn Cybersecurity, Data Science, and discover upcoming developer programs."
+        title="Curriculum & Programs | Oxyfied Technology Learning" 
+        description="Explore live hybrid master programs and hands-on tracks in Cybersecurity, Data Science, AI, and cutting-edge engineering technologies."
         canonical="/courses"
       />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         
         {/* Page Header */}
-        <div className="text-left space-y-2">
-          <h1 className="text-3xl font-display font-extrabold text-white">Explore Programs</h1>
-          <p className="text-stone-400 text-xs sm:text-sm">
-            Acquire specialized tech abilities through structured lessons, labs, and capstones.
+        <div className="text-left space-y-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold text-burnt-orange bg-burnt-orange/10 border border-burnt-orange/20 uppercase tracking-widest">
+            <Layers className="w-3.5 h-3.5" />
+            Curriculum Architecture
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-display font-extrabold text-deep-navy">
+            Specialized Technology Tracks
+          </h1>
+          <p className="text-warm-gray text-xs sm:text-sm max-w-3xl leading-relaxed">
+            Acquire specialized technical abilities in Cybersecurity and Data Science through hands-on labs, real-world project builds, expert mentorship, and industry-recognized certifications.
           </p>
+        </div>
+
+        {/* Top Quick Category Switcher Tabs */}
+        <div className="flex flex-wrap gap-2.5 border-b border-light-taupe pb-4">
+          <button
+            onClick={() => setSelectedCategory('all')}
+            className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-2 cursor-pointer ${
+              selectedCategory === 'all'
+                ? 'bg-burnt-orange text-white border-burnt-orange shadow-md'
+                : 'bg-warm-white text-deep-navy border-light-taupe hover:border-burnt-orange hover:bg-soft-beige'
+            }`}
+          >
+            <span>All Programs</span>
+            <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-extrabold ${
+              selectedCategory === 'all' ? 'bg-white/20 text-white' : 'bg-soft-beige text-deep-navy'
+            }`}>
+              {courses.length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setSelectedCategory('Cybersecurity')}
+            className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-2 cursor-pointer ${
+              selectedCategory === 'Cybersecurity'
+                ? 'bg-burnt-orange text-white border-burnt-orange shadow-md'
+                : 'bg-warm-white text-deep-navy border-light-taupe hover:border-burnt-orange hover:bg-soft-beige'
+            }`}
+          >
+            <span>Cybersecurity</span>
+            <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-extrabold ${
+              selectedCategory === 'Cybersecurity' ? 'bg-white/20 text-white' : 'bg-soft-beige text-deep-navy'
+            }`}>
+              {cyberCount}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setSelectedCategory('Data Science')}
+            className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-2 cursor-pointer ${
+              selectedCategory === 'Data Science'
+                ? 'bg-burnt-orange text-white border-burnt-orange shadow-md'
+                : 'bg-warm-white text-deep-navy border-light-taupe hover:border-burnt-orange hover:bg-soft-beige'
+            }`}
+          >
+            <span>Data Science</span>
+            <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-extrabold ${
+              selectedCategory === 'Data Science' ? 'bg-white/20 text-white' : 'bg-soft-beige text-deep-navy'
+            }`}>
+              {dataScienceCount}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setSelectedCategory('Coming Soon')}
+            className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-2 cursor-pointer ${
+              selectedCategory === 'Coming Soon'
+                ? 'bg-burnt-orange text-white border-burnt-orange shadow-md'
+                : 'bg-warm-white text-deep-navy border-light-taupe hover:border-burnt-orange hover:bg-soft-beige'
+            }`}
+          >
+            <span>Coming Soon</span>
+            <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-extrabold ${
+              selectedCategory === 'Coming Soon' ? 'bg-white/20 text-white' : 'bg-soft-beige text-deep-navy'
+            }`}>
+              {comingSoonCount}
+            </span>
+          </button>
         </div>
 
         {/* Filters and List panel */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
-          {/* Left panel: Filters (4 columns) */}
-          <aside className="lg:col-span-3 bg-[#141210] border border-stone-850 p-6 rounded-2xl shadow-xl h-fit space-y-6">
-            <div className="flex items-center justify-between border-b border-stone-850 pb-3">
-              <h3 className="font-display font-bold text-sm text-white">Filters</h3>
+          {/* Left panel: Filters (3 columns on large screens) */}
+          <aside className="lg:col-span-3 bg-warm-white border border-light-taupe p-6 rounded-2xl shadow-md h-fit space-y-6 text-left">
+            <div className="flex items-center justify-between border-b border-light-taupe pb-3">
+              <h3 className="font-display font-bold text-sm text-deep-navy">Filter Programs</h3>
               <button
                 onClick={handleClearFilters}
-                className="text-[10px] font-bold text-amber-500 hover:text-amber-450 transition-colors flex items-center gap-1"
+                className="text-[10px] font-bold text-burnt-orange hover:text-deep-orange transition-colors flex items-center gap-1 cursor-pointer"
               >
                 <RefreshCw className="w-3 h-3" />
                 Clear All
@@ -138,48 +238,49 @@ export const Courses: React.FC = () => {
 
             {/* Filter: Search input */}
             <div className="space-y-2">
-              <label htmlFor="course-search" className="text-[10px] font-bold text-stone-450 uppercase tracking-widest block">
-                Search
+              <label htmlFor="course-search" className="text-[10px] font-bold text-deep-navy uppercase tracking-widest block">
+                Search Keywords
               </label>
               <div className="relative">
                 <input
                   type="text"
                   id="course-search"
-                  placeholder="e.g. Python, Linux..."
+                  placeholder="e.g. Python, SQL, AI, Hacking..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 bg-stone-950 border border-stone-800 text-xs text-white rounded-lg focus:outline-none focus:border-amber-500 transition-all placeholder-stone-600"
+                  className="w-full pl-9 pr-3 py-2 bg-warm-ivory border border-light-taupe text-xs text-deep-navy rounded-lg focus:outline-none focus:border-burnt-orange transition-all placeholder-warm-gray"
                 />
-                <Search className="w-4 h-4 text-stone-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Search className="w-4 h-4 text-warm-gray absolute left-3 top-1/2 -translate-y-1/2" />
               </div>
             </div>
 
             {/* Filter: Category */}
             <div className="space-y-2">
-              <span className="text-[10px] font-bold text-stone-450 uppercase tracking-widest block text-left">
-                Category
+              <span className="text-[10px] font-bold text-deep-navy uppercase tracking-widest block text-left">
+                Program Category
               </span>
               <div className="flex flex-col gap-2">
                 {[
-                  { value: 'all', label: 'All Tracks' },
-                  { value: 'Cybersecurity', label: 'Cybersecurity' },
-                  { value: 'Data Science', label: 'Data Science' },
-                  { value: 'available', label: 'Live Available' },
-                  { value: 'coming-soon', label: 'Coming Soon' },
+                  { value: 'all', label: 'All Programs', count: courses.length },
+                  { value: 'Cybersecurity', label: 'Cybersecurity', count: cyberCount },
+                  { value: 'Data Science', label: 'Data Science', count: dataScienceCount },
+                  { value: 'Coming Soon', label: 'Coming Soon', count: comingSoonCount },
                 ].map((opt) => (
                   <button
                     key={opt.value}
                     onClick={() => setSelectedCategory(opt.value)}
-                    className={`w-full px-3 py-2 text-xs font-semibold rounded-lg text-left transition-all border flex justify-between items-center ${
+                    className={`w-full px-3 py-2 text-xs font-semibold rounded-lg text-left transition-all border flex justify-between items-center cursor-pointer ${
                       selectedCategory === opt.value
-                        ? 'bg-amber-500/10 text-amber-400 border-amber-500/50'
-                        : 'bg-stone-955 text-stone-300 border-stone-800 hover:border-stone-700'
+                        ? 'bg-burnt-orange text-white border-burnt-orange shadow-sm font-bold'
+                        : 'bg-warm-ivory text-deep-navy border-light-taupe hover:border-burnt-orange'
                     }`}
                   >
                     <span>{opt.label}</span>
-                    {selectedCategory === opt.value && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse shadow-[0_0_8px_#fbbf24]" />
-                    )}
+                    <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                      selectedCategory === opt.value ? 'bg-white/20 text-white' : 'bg-soft-beige text-deep-navy'
+                    }`}>
+                      {opt.count}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -187,7 +288,7 @@ export const Courses: React.FC = () => {
 
             {/* Filter: Experience Level */}
             <div className="space-y-2">
-              <span className="text-[10px] font-bold text-stone-450 uppercase tracking-widest block text-left">
+              <span className="text-[10px] font-bold text-deep-navy uppercase tracking-widest block text-left">
                 Experience Level
               </span>
               <div className="grid grid-cols-2 gap-2">
@@ -200,10 +301,10 @@ export const Courses: React.FC = () => {
                   <button
                     key={opt.value}
                     onClick={() => setSelectedLevel(opt.value)}
-                    className={`px-2 py-2 text-[10px] font-semibold rounded-lg text-center transition-all border ${
+                    className={`px-2 py-2 text-[10px] font-semibold rounded-lg text-center transition-all border cursor-pointer ${
                       selectedLevel === opt.value
-                        ? 'bg-amber-500/10 text-amber-400 border-amber-500/50'
-                        : 'bg-stone-955 text-stone-350 border-stone-800 hover:border-stone-700'
+                        ? 'bg-burnt-orange text-white border-burnt-orange shadow-sm font-bold'
+                        : 'bg-warm-ivory text-deep-navy border-light-taupe hover:border-burnt-orange'
                     }`}
                   >
                     {opt.label}
@@ -212,30 +313,27 @@ export const Courses: React.FC = () => {
               </div>
             </div>
 
-            {/* Filter: Pricing */}
+            {/* Filter: Program Tier */}
             <div className="space-y-2">
-              <span className="text-[10px] font-bold text-stone-455 uppercase tracking-widest block text-left">
-                Pricing
+              <span className="text-[10px] font-bold text-deep-navy uppercase tracking-widest block text-left">
+                Program Tier
               </span>
               <div className="flex flex-col gap-2">
                 {[
-                  { value: 'all', label: 'All Prices' },
-                  { value: 'paid', label: 'Live Programs (Paid)' },
-                  { value: 'free', label: 'Coming Soon (Placeholder)' },
+                  { value: 'all', label: 'All Tiers' },
+                  { value: 'master-level', label: 'Master Programs (Comprehensive)' },
+                  { value: 'under-10k', label: 'Executive Upskills (24–36 Hours)' },
                 ].map((opt) => (
                   <button
                     key={opt.value}
                     onClick={() => setSelectedPrice(opt.value)}
-                    className={`w-full px-3 py-2 text-xs font-semibold rounded-lg text-left transition-all border flex justify-between items-center ${
+                    className={`w-full px-3 py-2 text-xs font-semibold rounded-lg text-left transition-all border flex justify-between items-center cursor-pointer ${
                       selectedPrice === opt.value
-                        ? 'bg-amber-500/10 text-amber-400 border-amber-500/50'
-                        : 'bg-stone-955 text-stone-300 border-stone-800 hover:border-stone-700'
+                        ? 'bg-burnt-orange text-white border-burnt-orange shadow-sm font-bold'
+                        : 'bg-warm-ivory text-deep-navy border-light-taupe hover:border-burnt-orange'
                     }`}
                   >
                     <span>{opt.label}</span>
-                    {selectedPrice === opt.value && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-405 animate-pulse shadow-[0_0_8px_#fbbf24]" />
-                    )}
                   </button>
                 ))}
               </div>
@@ -243,14 +341,14 @@ export const Courses: React.FC = () => {
 
             {/* Filter: Sort parameters */}
             <div className="space-y-2">
-              <label htmlFor="sort-select" className="text-[10px] font-bold text-stone-455 uppercase tracking-widest block">
+              <label htmlFor="sort-select" className="text-[10px] font-bold text-deep-navy uppercase tracking-widest block">
                 Sort By
               </label>
               <select
                 id="sort-select"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="w-full px-3 py-2 bg-stone-955 border border-stone-800 text-xs text-stone-300 rounded-lg focus:outline-none focus:border-amber-500 focus:text-white transition-all"
+                className="w-full px-3 py-2 bg-warm-ivory border border-light-taupe text-xs text-deep-navy rounded-lg focus:outline-none focus:border-burnt-orange transition-all"
               >
                 <option value="popular">Most Enrolled (Popular)</option>
                 <option value="rating">Highest Rated</option>
@@ -262,156 +360,64 @@ export const Courses: React.FC = () => {
 
           {/* Right panel: Course listing grids (9 columns) */}
           <main className="lg:col-span-9 space-y-6">
-            <div className="flex items-center justify-between text-xs text-stone-400 font-semibold border-b border-stone-850 pb-3 text-left">
-              <span>Showing {filteredCourses.length} programs</span>
+            <div className="flex items-center justify-between text-xs text-warm-gray font-semibold border-b border-light-taupe pb-3 text-left">
+              <span>Showing <strong className="text-deep-navy">{filteredCourses.length}</strong> programs</span>
               {searchTerm && <span>Search: "{searchTerm}"</span>}
             </div>
 
             {isLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {[1, 2, 3].map((n) => (
-                  <div key={n} className="bg-stone-900 border border-stone-850 rounded-2xl p-5 space-y-4 animate-pulse">
-                    <div className="aspect-[16/10] bg-stone-950/60 rounded-xl" />
-                    <div className="h-4 bg-stone-950/60 rounded w-3/4" />
-                    <div className="h-3 bg-stone-950/60 rounded w-1/2" />
-                    <div className="h-6 bg-stone-950/60 rounded" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                {[1, 2, 3, 4, 5, 6].map((n) => (
+                  <div key={n} className="bg-white border border-light-taupe/70 rounded-2xl p-4 space-y-3.5 animate-pulse shadow-2xs">
+                    <div className="flex justify-between items-center">
+                      <div className="h-4 bg-soft-beige rounded-full w-24" />
+                      <div className="h-4 bg-soft-beige rounded w-16" />
+                    </div>
+                    <div className="aspect-[16/10] bg-soft-beige rounded-xl" />
+                    <div className="flex items-center gap-2.5">
+                      <div className="h-9 w-9 bg-soft-beige rounded-xl flex-shrink-0" />
+                      <div className="h-4 bg-soft-beige rounded w-3/4" />
+                    </div>
+                    <div className="h-3 bg-soft-beige rounded w-1/2" />
+                    <div className="flex gap-1.5">
+                      <div className="h-4 bg-soft-beige rounded-full w-14" />
+                      <div className="h-4 bg-soft-beige rounded-full w-14" />
+                    </div>
+                    <div className="pt-2 border-t border-light-taupe/50 flex justify-between items-center">
+                      <div className="h-4 bg-soft-beige rounded w-16" />
+                      <div className="h-6 bg-soft-beige rounded-full w-24" />
+                    </div>
                   </div>
                 ))}
               </div>
             ) : error ? (
-              <div className="bg-stone-900 border border-stone-850 p-12 rounded-2xl shadow-xl text-center max-w-lg mx-auto space-y-4">
+              <div className="bg-warm-white border border-light-taupe p-12 rounded-2xl shadow-md text-center max-w-lg mx-auto space-y-4">
                 <AlertCircle className="w-12 h-12 text-red-500 mx-auto" />
-                <h3 className="font-display font-semibold text-white text-base">Error Loading Programs</h3>
-                <p className="text-xs text-stone-400 leading-relaxed">{error}</p>
+                <h3 className="font-display font-bold text-deep-navy text-base">Error Loading Programs</h3>
+                <p className="text-xs text-warm-gray leading-relaxed">{error}</p>
               </div>
             ) : filteredCourses.length === 0 ? (
-              <div className="bg-stone-900 border border-stone-850 p-12 rounded-2xl shadow-xl text-center max-w-lg mx-auto space-y-4">
-                <AlertCircle className="w-12 h-12 text-stone-500 mx-auto" />
-                <h3 className="font-display font-semibold text-white text-base">No programs found</h3>
-                <p className="text-xs text-stone-400 leading-relaxed">
+              <div className="bg-warm-white border border-light-taupe p-12 rounded-2xl shadow-md text-center max-w-lg mx-auto space-y-4">
+                <AlertCircle className="w-12 h-12 text-warm-gray mx-auto" />
+                <h3 className="font-display font-bold text-deep-navy text-base">No programs found</h3>
+                <p className="text-xs text-warm-gray leading-relaxed">
                   Try adjusting your filters, clearing the search input, or selecting a broader category choice.
                 </p>
                 <button
                   onClick={handleClearFilters}
-                  className="btn-primary px-4 py-2 text-xs font-bold rounded-lg shadow"
+                  className="btn-primary px-4 py-2 text-xs font-bold rounded-lg shadow-sm"
                 >
                   Reset Filters
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {filteredCourses.map((course) => {
-                  const isComingSoon = course.status === 'coming-soon';
-                  return (
-                    <div
-                      key={course.id}
-                      onClick={() => {
-                        if (!isComingSoon) {
-                          navigate(`/courses/${course.slug}`);
-                        }
-                      }}
-                      className={`bg-stone-900 border border-stone-850 rounded-2xl flex flex-col justify-between hover:border-amber-500/30 transition-all duration-300 shadow-xl overflow-hidden group ${
-                        !isComingSoon ? 'cursor-pointer' : ''
-                      }`}
-                    >
-                      <div className="relative aspect-[16/10] overflow-hidden bg-stone-950 border-b border-stone-850/60">
-                        <img
-                          src={course.image}
-                          alt={course.title}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                        <span className="absolute top-3 left-3 px-2.5 py-1 bg-deep-navy-950/80 backdrop-blur text-white text-[10px] font-bold rounded uppercase tracking-wider border border-white/10">
-                          {course.category}
-                        </span>
-                        {isComingSoon && (
-                          <span className="absolute top-3 right-3 px-2.5 py-1 bg-amber-955 border border-amber-850/30 text-amber-450 text-[10px] font-bold rounded uppercase tracking-wider">
-                            Coming Soon
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                        <div className="space-y-2">
-                          <h3 className="font-display font-bold text-sm text-white group-hover:text-amber-400 transition-colors leading-snug">
-                            {course.title}
-                          </h3>
-                          <p className="text-stone-450 text-[11px] leading-relaxed line-clamp-3">
-                            {course.description}
-                          </p>
-                        </div>
-
-                        {/* Skill badges */}
-                        <div className="flex flex-wrap gap-1">
-                          {course.skills.slice(0, 3).map((skill) => (
-                            <span key={skill} className="px-2 py-0.5 bg-stone-950 text-stone-300 text-[9px] font-bold rounded">
-                              {skill}
-                            </span>
-                          ))}
-                        </div>
-
-                        {!isComingSoon && (
-                          <div className="flex items-center justify-between text-[10px] text-stone-450 font-semibold border-t border-stone-850 pt-3.5">
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-3.5 h-3.5" />
-                              {course.duration}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <BookOpen className="w-3.5 h-3.5" />
-                              {course.lessons} lessons
-                            </span>
-                            <span className="flex items-center gap-1 text-amber-450">
-                              <Star className="w-3.5 h-3.5 fill-current" />
-                              {course.rating}
-                            </span>
-                          </div>
-                        )}
-
-                        <div className="flex items-center justify-between pt-2.5 border-t border-stone-850">
-                          {isComingSoon ? (
-                            <span className="text-[11px] text-stone-500 font-bold uppercase py-1 px-2.5 bg-stone-950 border border-stone-850 rounded-lg w-full text-center">
-                              Registration Coming Soon
-                            </span>
-                          ) : (
-                            <>
-                              <div className="flex flex-col">
-                                <span className="text-stone-500 text-[9px] line-through font-semibold leading-none">
-                                  ₹{course.originalPrice}
-                                </span>
-                                <span className="text-white font-display font-extrabold text-base leading-tight">
-                                  ₹{course.price}
-                                </span>
-                              </div>
-                              <div className="flex gap-2">
-                                <Link
-                                  to={`/courses/${course.slug}`}
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="btn-secondary px-3 py-1.5 text-[10px] font-bold rounded-lg"
-                                >
-                                  Details
-                                </Link>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (course.id) {
-                                      navigate(`/checkout/${course.id}`);
-                                    }
-                                  }}
-                                  className="btn-primary px-3 py-1.5 text-[10px] font-bold rounded-lg"
-                                >
-                                  Enroll
-                                </button>
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                {filteredCourses.map((course) => (
+                  <CourseCard key={course.id} course={course} />
+                ))}
               </div>
             )}
           </main>
-
         </div>
       </div>
     </div>

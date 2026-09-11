@@ -14,7 +14,7 @@ export const MainLayout: React.FC = () => {
       <Navbar />
 
       {/* Page Content wrapper */}
-      <main className="flex-grow pt-[72px] min-h-[calc(100vh-72px)] flex flex-col">
+      <main className="flex-grow pt-[64px] sm:pt-[68px] min-h-[calc(100vh-68px)] flex flex-col">
         <Outlet />
       </main>
 

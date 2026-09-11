@@ -34,27 +34,31 @@ export const MyCourses: React.FC = () => {
   if (isLoading) {
     return (
       <div className="min-h-[40vh] flex flex-col items-center justify-center space-y-4">
-        <Loader2 className="w-8 h-8 text-amber-500 animate-spin" />
-        <span className="text-xs text-stone-400 font-semibold uppercase tracking-widest">Loading Registered Programs...</span>
+        <Loader2 className="w-8 h-8 text-burnt-orange animate-spin" />
+        <span className="text-xs text-warm-gray font-bold uppercase tracking-widest">Loading Registered Programs...</span>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 text-left">
-      <div className="border-b border-stone-850 pb-3">
-        <h2 className="text-xl font-display font-extrabold text-white">My Registered Programs</h2>
-        <p className="text-xs text-stone-400">Access video modules, files, and sandbox guides.</p>
+    <div className="space-y-6 text-left max-w-7xl mx-auto">
+      <div className="border-b border-light-taupe pb-3">
+        <h2 className="text-2xl font-display font-extrabold text-deep-navy">My Registered Programs</h2>
+        <p className="text-xs sm:text-sm text-warm-gray">Access video modules, files, and sandbox guides.</p>
       </div>
 
       {enrolled.length === 0 ? (
-        <div className="bg-stone-900 border border-stone-850 p-12 rounded-2xl text-center space-y-4 shadow-xl max-w-md mx-auto">
-          <BookOpen className="w-12 h-12 text-stone-500 mx-auto" />
-          <h3 className="font-display font-bold text-white text-sm">No courses enrolled</h3>
-          <p className="text-xs text-stone-400">Enroll in Cybersecurity or Data Science to get started.</p>
-          <Link to="/courses" className="btn-primary px-5 py-2 text-xs font-semibold rounded-lg shadow">
-            View Programs
-          </Link>
+        <div className="bg-warm-white border border-light-taupe p-12 rounded-2xl text-center space-y-4 shadow-sm max-w-md mx-auto">
+          <div className="w-14 h-14 rounded-2xl bg-warm-ivory border border-light-taupe flex items-center justify-center mx-auto text-warm-gray">
+            <BookOpen className="w-7 h-7" />
+          </div>
+          <h3 className="font-display font-bold text-deep-navy text-base">No courses enrolled</h3>
+          <p className="text-xs text-warm-gray leading-relaxed">Enroll in Cybersecurity or Data Science to get started.</p>
+          <div className="pt-2">
+            <Link to="/courses" className="btn-primary px-6 py-2.5 text-xs font-bold rounded-xl shadow inline-block">
+              View Programs
+            </Link>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -64,32 +68,32 @@ export const MyCourses: React.FC = () => {
             const firstLessonId = course.modules?.[0]?.lessons?.[0]?.id || '';
 
             return (
-              <div key={course.id} className="bg-stone-900 border border-stone-850 p-5 rounded-2xl shadow-xl hover:border-amber-500/20 transition-all flex flex-col justify-between space-y-5">
-                <div className="space-y-2">
-                  <span className="text-[9px] uppercase font-bold bg-amber-500/10 text-amber-450 border border-amber-500/25 px-1.5 py-0.5 rounded">
+              <div key={course.id} className="bg-warm-white border border-light-taupe p-6 rounded-2xl shadow-sm hover:border-burnt-orange/30 transition-all flex flex-col justify-between space-y-5">
+                <div className="space-y-2.5">
+                  <span className="text-[10px] uppercase font-bold bg-burnt-orange/10 text-burnt-orange border border-burnt-orange/20 px-2 py-0.5 rounded-md">
                     {course.category}
                   </span>
-                  <h3 className="font-display font-bold text-base text-white leading-snug">{course.title}</h3>
-                  <p className="text-stone-400 text-xs leading-relaxed line-clamp-2">{course.description}</p>
+                  <h3 className="font-display font-bold text-base text-deep-navy leading-snug">{course.title}</h3>
+                  <p className="text-warm-gray text-xs leading-relaxed line-clamp-2">{course.description}</p>
                 </div>
 
                 {/* Progress Indicators */}
-                <div className="space-y-1.5 pt-1 border-t border-stone-850">
-                  <div className="flex justify-between text-[10px] text-stone-400 font-bold">
+                <div className="space-y-2 pt-2 border-t border-light-taupe">
+                  <div className="flex justify-between text-xs text-warm-gray font-bold">
                     <span>Syllabus Progress</span>
-                    <span className="font-mono">{progressPercentage}%</span>
+                    <span className="font-mono text-deep-navy">{progressPercentage}%</span>
                   </div>
-                  <div className="w-full bg-stone-950 rounded-full h-1.5">
-                    <div className="bg-amber-500 h-1.5 rounded-full" style={{ width: `${progressPercentage}%` }} />
+                  <div className="w-full bg-soft-beige rounded-full h-2">
+                    <div className="bg-burnt-orange h-2 rounded-full transition-all duration-300" style={{ width: `${progressPercentage}%` }} />
                   </div>
-                  <span className="text-[10px] text-stone-500 block font-medium">
-                    {completedList.length} of {course.lessons} lessons watched
+                  <span className="text-[11px] text-warm-gray block font-medium">
+                    {completedList.length} of {course.lessons} lessons completed
                   </span>
                 </div>
 
                 <button
                   onClick={() => navigate(`/dashboard/learn/${course.id}/${firstLessonId}`)}
-                  className="btn-primary w-full py-2.5 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 shadow"
+                  className="btn-primary w-full py-3 text-xs font-bold rounded-xl flex items-center justify-center gap-2 shadow"
                 >
                   Enter Classroom
                   <Play className="w-4 h-4 fill-current" />
@@ -129,53 +133,58 @@ export const ProgressTracking: React.FC = () => {
   if (isLoading) {
     return (
       <div className="min-h-[40vh] flex flex-col items-center justify-center space-y-4">
-        <Loader2 className="w-8 h-8 text-amber-500 animate-spin" />
-        <span className="text-xs text-stone-400 font-semibold uppercase tracking-widest">Loading Progress Tracking...</span>
+        <Loader2 className="w-8 h-8 text-burnt-orange animate-spin" />
+        <span className="text-xs text-warm-gray font-bold uppercase tracking-widest">Loading Progress Tracking...</span>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 text-left">
-      <div className="border-b border-stone-850 pb-3">
-        <h2 className="text-xl font-display font-extrabold text-white">Learning Progress</h2>
-        <p className="text-xs text-stone-400">Track which modules have been completed.</p>
+    <div className="space-y-6 text-left max-w-7xl mx-auto">
+      <div className="border-b border-light-taupe pb-3">
+        <h2 className="text-2xl font-display font-extrabold text-deep-navy">Learning Progress</h2>
+        <p className="text-xs sm:text-sm text-warm-gray">Track which modules have been completed across your syllabus.</p>
       </div>
 
       {enrolled.length === 0 ? (
-        <p className="text-xs text-stone-500 text-center py-8">Enroll in a course to trace progress.</p>
+        <p className="text-xs sm:text-sm text-warm-gray text-center py-12">Enroll in a course to trace progress.</p>
       ) : (
         <div className="space-y-6">
           {enrolled.map((course) => {
             const completedList = user?.progress[course.id] || [];
             
             return (
-              <div key={course.id} className="bg-stone-900 border border-stone-850 p-6 rounded-2xl shadow-xl space-y-4">
-                <div className="border-b border-stone-850 pb-3">
-                  <h3 className="font-display font-bold text-sm text-white">{course.title}</h3>
-                  <span className="text-[10px] text-stone-500 font-semibold uppercase">{completedList.length} of {course.lessons} completed</span>
+              <div key={course.id} className="bg-warm-white border border-light-taupe p-6 sm:p-8 rounded-2xl shadow-sm space-y-5">
+                <div className="border-b border-light-taupe pb-4 flex items-center justify-between">
+                  <div>
+                    <h3 className="font-display font-bold text-base text-deep-navy">{course.title}</h3>
+                    <span className="text-xs text-warm-gray font-medium">{completedList.length} of {course.lessons} lessons completed</span>
+                  </div>
+                  <span className="text-xs font-bold font-mono px-2.5 py-1 rounded-full bg-burnt-orange/10 text-burnt-orange border border-burnt-orange/20">
+                    {Math.round((completedList.length / course.lessons) * 100)}%
+                  </span>
                 </div>
 
                 {/* Modules breakdown */}
                 <div className="space-y-3">
                   {(course.modules || []).map((mod) => {
                     const completedInMod = mod.lessons.filter((l) => completedList.includes(l.id)).length;
-                    const isModFinished = completedInMod === mod.lessons.length;
+                    const isModFinished = completedInMod === mod.lessons.length && mod.lessons.length > 0;
 
                     return (
-                      <div key={mod.id} className="flex items-center justify-between p-3.5 bg-stone-950 border border-stone-850 rounded-xl">
+                      <div key={mod.id} className="flex items-center justify-between p-4 bg-warm-ivory border border-light-taupe rounded-xl">
                         <div className="space-y-0.5">
-                          <span className="text-xs font-bold text-white block">{mod.title}</span>
-                          <span className="text-[10px] text-stone-400 block font-medium">
+                          <span className="text-xs font-bold text-deep-navy block">{mod.title}</span>
+                          <span className="text-[10px] text-warm-gray block font-medium">
                             {completedInMod} of {mod.lessons.length} lessons completed
                           </span>
                         </div>
                         {isModFinished ? (
-                          <span className="inline-flex items-center gap-1 bg-emerald-950/20 text-emerald-450 text-[10px] font-bold px-2 py-0.5 rounded border border-emerald-900/30 uppercase">
+                          <span className="inline-flex items-center gap-1 bg-sage-green/15 text-sage-green text-[10px] font-bold px-2.5 py-1 rounded-md border border-sage-green/30 uppercase tracking-wider">
                             Finished
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 bg-stone-900 text-stone-400 text-[10px] font-bold px-2 py-0.5 rounded border border-stone-800 uppercase">
+                          <span className="inline-flex items-center gap-1 bg-warm-white text-warm-gray text-[10px] font-bold px-2.5 py-1 rounded-md border border-light-taupe uppercase tracking-wider">
                             In Progress
                           </span>
                         )}
@@ -218,51 +227,53 @@ export const Certificates: React.FC = () => {
   // Determine completed courses
   const completedCourses = enrolled.filter((course) => {
     const completedList = user?.progress[course.id] || [];
-    return completedList.length === course.lessons;
+    return completedList.length === course.lessons && course.lessons > 0;
   });
 
   if (isLoading) {
     return (
       <div className="min-h-[40vh] flex flex-col items-center justify-center space-y-4">
-        <Loader2 className="w-8 h-8 text-amber-500 animate-spin" />
-        <span className="text-xs text-stone-400 font-semibold uppercase tracking-widest">Checking Certificate Credentials...</span>
+        <Loader2 className="w-8 h-8 text-burnt-orange animate-spin" />
+        <span className="text-xs text-warm-gray font-bold uppercase tracking-widest">Checking Certificate Credentials...</span>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 text-left">
-      <div className="border-b border-stone-850 pb-3">
-        <h2 className="text-xl font-display font-extrabold text-white">My Certificates</h2>
-        <p className="text-xs text-stone-400">Download shareable verifications of your credentials.</p>
+    <div className="space-y-6 text-left max-w-7xl mx-auto">
+      <div className="border-b border-light-taupe pb-3">
+        <h2 className="text-2xl font-display font-extrabold text-deep-navy">My Certificates</h2>
+        <p className="text-xs sm:text-sm text-warm-gray">Download shareable verifications of your technical credentials.</p>
       </div>
 
       {completedCourses.length === 0 ? (
-        <div className="bg-stone-900 border border-stone-850 p-8 rounded-2xl text-center space-y-3 shadow-xl max-w-md mx-auto">
-          <Award className="w-12 h-12 text-stone-500 mx-auto" />
-          <h3 className="font-display font-bold text-white text-sm">No certificates earned yet</h3>
-          <p className="text-xs text-stone-400 max-w-xs mx-auto leading-relaxed">
-            Certificates will be unlocked here once you mark all lessons in a course syllabus as complete.
+        <div className="bg-warm-white border border-light-taupe p-10 rounded-2xl text-center space-y-3 shadow-sm max-w-md mx-auto">
+          <div className="w-14 h-14 rounded-2xl bg-warm-ivory border border-light-taupe flex items-center justify-center mx-auto text-warm-gray">
+            <Award className="w-7 h-7" />
+          </div>
+          <h3 className="font-display font-bold text-deep-navy text-base">No certificates earned yet</h3>
+          <p className="text-xs text-warm-gray max-w-xs mx-auto leading-relaxed">
+            Certificates will be unlocked here automatically once you mark all lessons in a course syllabus as complete.
           </p>
         </div>
       ) : (
         <div className="space-y-4">
           {completedCourses.map((course) => (
-            <div key={course.id} className="bg-stone-900 border border-stone-850 p-6 rounded-2xl shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div key={course.id} className="bg-warm-white border border-light-taupe p-6 rounded-2xl shadow-sm flex flex-col sm:flex-row items-center justify-between gap-6">
               <div className="flex gap-4 items-start">
-                <div className="w-12 h-12 rounded-xl bg-amber-550/10 border border-amber-500/20 flex items-center justify-center text-amber-450">
+                <div className="w-12 h-12 rounded-xl bg-sage-green/15 border border-sage-green/30 flex items-center justify-center text-sage-green flex-shrink-0">
                   <Award className="w-6 h-6" />
                 </div>
                 <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-amber-500 tracking-wider">Verifiable Credential</span>
-                  <h3 className="font-display font-bold text-sm text-white">{course.title}</h3>
-                  <span className="text-[10px] text-stone-500 block font-mono">ID: CERT-Oxyfied-{Math.floor(100000 + Math.random() * 900000)}</span>
+                  <span className="text-[10px] uppercase font-bold text-burnt-orange tracking-wider">Verifiable Credential</span>
+                  <h3 className="font-display font-bold text-base text-deep-navy">{course.title}</h3>
+                  <span className="text-[10px] text-warm-gray block font-mono">ID: CERT-OXYFIED-{Math.floor(100000 + Math.random() * 900000)}</span>
                 </div>
               </div>
 
               <button 
                 onClick={() => alert('Downloading PDF Certificate Mock...')}
-                className="btn-primary px-5 py-2.5 text-xs font-bold rounded-lg flex items-center gap-1.5 shadow"
+                className="btn-primary px-5 py-2.5 text-xs font-bold rounded-xl flex items-center gap-2 shadow"
               >
                 <Download className="w-4 h-4" />
                 Download PDF
@@ -306,22 +317,22 @@ export const Settings: React.FC = () => {
 
   return (
     <div className="space-y-6 text-left max-w-xl">
-      <div className="border-b border-stone-850 pb-3">
-        <h2 className="text-xl font-display font-extrabold text-white">Workspace Settings</h2>
-        <p className="text-xs text-stone-400">Modify your student profile configurations.</p>
+      <div className="border-b border-light-taupe pb-3">
+        <h2 className="text-2xl font-display font-extrabold text-deep-navy">Workspace Settings</h2>
+        <p className="text-xs sm:text-sm text-warm-gray">Modify your student profile configurations.</p>
       </div>
 
       {success && (
-        <div className="p-3 bg-emerald-955/20 border border-emerald-900/40 text-emerald-450 text-xs rounded-xl flex items-center gap-2 font-medium">
-          <CheckCircle2 className="w-4 h-4 text-emerald-450 flex-shrink-0" />
+        <div className="p-4 bg-sage-green/15 border border-sage-green/30 text-deep-navy text-xs rounded-xl flex items-center gap-2 font-medium">
+          <CheckCircle2 className="w-5 h-5 text-sage-green flex-shrink-0" />
           <span>Profile configuration saved successfully!</span>
         </div>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="bg-[#141210] border border-stone-850 p-6 rounded-2xl shadow-2xl space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="bg-warm-white border border-light-taupe p-6 sm:p-8 rounded-2xl shadow-sm space-y-4">
         {/* Input: Name */}
-        <div className="space-y-1">
-          <label htmlFor="settings-name" className="text-[10px] font-bold text-stone-500 uppercase tracking-widest block">
+        <div className="space-y-1.5">
+          <label htmlFor="settings-name" className="text-[10px] font-bold text-deep-navy uppercase tracking-widest block">
             Student Name
           </label>
           <div className="relative">
@@ -329,16 +340,16 @@ export const Settings: React.FC = () => {
               type="text"
               id="settings-name"
               {...register('name', { required: 'Name is required' })}
-              className="w-full pl-9 pr-3 py-2 bg-stone-950 border border-stone-800 rounded-lg text-xs text-white focus:outline-none focus:border-amber-500 placeholder-stone-600 transition-all"
+              className="w-full pl-9 pr-3 py-2.5 bg-warm-ivory border border-light-taupe rounded-xl text-xs text-deep-navy focus:outline-none focus:bg-warm-white focus:border-burnt-orange placeholder-warm-gray/60 transition-all"
             />
-            <UserIcon className="w-4 h-4 text-stone-550 absolute left-3 top-1/2 -translate-y-1/2" />
+            <UserIcon className="w-4 h-4 text-warm-gray absolute left-3 top-1/2 -translate-y-1/2" />
           </div>
-          {errors.name && <span className="text-[10px] text-red-400 block font-medium">{errors.name.message}</span>}
+          {errors.name && <span className="text-[10px] text-red-600 block font-medium">{errors.name.message}</span>}
         </div>
 
         {/* Input: Phone */}
-        <div className="space-y-1">
-          <label htmlFor="settings-phone" className="text-[10px] font-bold text-stone-500 uppercase tracking-widest block">
+        <div className="space-y-1.5">
+          <label htmlFor="settings-phone" className="text-[10px] font-bold text-deep-navy uppercase tracking-widest block">
             Phone Number
           </label>
           <div className="relative">
@@ -346,31 +357,33 @@ export const Settings: React.FC = () => {
               type="text"
               id="settings-phone"
               {...register('phone')}
-              className="w-full pl-9 pr-3 py-2 bg-stone-950 border border-stone-800 rounded-lg text-xs text-white focus:outline-none focus:border-amber-500 placeholder-stone-600 transition-all"
+              className="w-full pl-9 pr-3 py-2.5 bg-warm-ivory border border-light-taupe rounded-xl text-xs text-deep-navy focus:outline-none focus:bg-warm-white focus:border-burnt-orange placeholder-warm-gray/60 transition-all"
             />
-            <Phone className="w-4 h-4 text-stone-550 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Phone className="w-4 h-4 text-warm-gray absolute left-3 top-1/2 -translate-y-1/2" />
           </div>
         </div>
 
         {/* Locked Input: Email */}
-        <div className="space-y-1">
-          <label className="text-[10px] font-bold text-stone-500 uppercase tracking-widest block">
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-bold text-deep-navy uppercase tracking-widest block">
             Email Address (Locked)
           </label>
           <input
             type="text"
             disabled
             value={user?.email || ''}
-            className="w-full px-3 py-2 bg-stone-955 border border-stone-850 rounded-lg text-xs text-stone-600 cursor-not-allowed"
+            className="w-full px-3.5 py-2.5 bg-soft-beige/50 border border-light-taupe rounded-xl text-xs text-warm-gray cursor-not-allowed"
           />
         </div>
 
-        <button
-          type="submit"
-          className="btn-primary px-5 py-2.5 text-xs font-bold rounded-lg shadow"
-        >
-          Save Configuration
-        </button>
+        <div className="pt-2">
+          <button
+            type="submit"
+            className="btn-primary px-6 py-2.5 text-xs font-bold rounded-xl shadow"
+          >
+            Save Configuration
+          </button>
+        </div>
       </form>
     </div>
   );

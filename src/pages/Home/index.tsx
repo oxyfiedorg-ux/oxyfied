@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   ShieldCheck,
   TrendingUp,
@@ -11,17 +11,37 @@ import {
   Clock,
   BookOpen,
   ArrowRight,
-  Layers
+  Layers,
+  Terminal,
+  Code2,
+  Sparkles,
+  CheckCircle,
+  FileCode2,
+  Database,
+  PhoneCall
 } from 'lucide-react';
 import { courseService } from '../../services/courseService';
-import api from '../../services/api';
-import type { Course, Testimonial, Instructor, StatItem } from '../../types';
+import type { Course } from '../../types';
 import { blogPosts } from '../../data/blog';
+
 import { useCart } from '../../context/CartContext';
 import { SEO } from '../../components/common/SEO';
+import { HeroSlider } from '../../components/ui/HeroSlider';
+import { RealWorldSkillsSection } from '../../components/home/RealWorldSkillsSection';
+import { CourseCard } from '../../components/common/CourseCard';
+
+type CategoryFilter = 'All Categories' | 'Cybersecurity' | 'Data Science' | 'Coming Soon';
+
+const CATEGORIES: { id: CategoryFilter; label: string; icon: React.ElementType }[] = [
+  { id: 'All Categories', label: 'All Categories', icon: Layers },
+  { id: 'Cybersecurity', label: 'Cybersecurity', icon: ShieldCheck },
+  { id: 'Data Science', label: 'Data Science', icon: Database },
+  { id: 'Coming Soon', label: 'Coming Soon', icon: Clock }
+];
 
 export const Home: React.FC = () => {
-  const [activeCategory, setActiveCategory] = useState<'All' | 'Cybersecurity' | 'Data Science' | 'Coming Soon'>('All');
+  const [activeCategory, setActiveCategory] = useState<CategoryFilter>('All Categories');
+  const [activeLabTab, setActiveLabTab] = useState<'terminal' | 'notebook' | 'mentorship' | 'certificate'>('terminal');
   const [notifiedEmails, setNotifiedEmails] = useState<Record<string, boolean>>({});
   const [emailInput, setEmailInput] = useState<Record<string, string>>({});
   
@@ -30,35 +50,18 @@ export const Home: React.FC = () => {
 
   // Dynamic homepage states
   const [courses, setCourses] = useState<Course[]>([]);
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
-  const [instructors, setInstructors] = useState<Instructor[]>([]);
-  const [statsData, setStatsData] = useState<StatItem[]>([]);
-  const [hero, setHero] = useState({
-    title: 'Learn the skills that make you useful.',
-    subtitle: 'Practical technology education',
-    description: 'Build confident, career-ready ability in cybersecurity and data science through focused lessons, hands-on labs, and projects worth showing.'
-  });
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch Homepage and Course records from Neon on mount
+  // Fetch Homepage and Course records on mount
   useEffect(() => {
     const fetchHomepageData = async () => {
       try {
         setIsLoading(true);
         // Load courses
         const activeCourses = await courseService.getCourses();
-        setCourses(activeCourses);
-
-        // Load public instructors list
-        const instructorList = await courseService.getInstructors();
-        setInstructors(instructorList);
-
-        // Load hero config, stats, testimonials
-        const response = await api.get('/homepage');
-        const { hero, stats, testimonials } = response.data;
-        if (hero) setHero(hero);
-        if (stats) setStatsData(stats);
-        if (testimonials) setTestimonials(testimonials);
+        if (activeCourses && activeCourses.length > 0) {
+          setCourses(activeCourses);
+        }
       } catch (err) {
         console.error('Failed to load homepage database elements:', err);
       } finally {
@@ -95,493 +98,778 @@ export const Home: React.FC = () => {
     setEmailInput((prev) => ({ ...prev, [courseId]: '' }));
   };
 
-  // Handle changing inputs
   const handleEmailChange = (courseId: string, val: string) => {
     setEmailInput((prev) => ({ ...prev, [courseId]: val }));
   };
 
-  // Filter courses based on active categories
-  const filteredCourses = courses.filter((course) => {
-    if (activeCategory === 'All') return course.status === 'available';
-    if (activeCategory === 'Cybersecurity') return course.category === 'Cybersecurity';
-    if (activeCategory === 'Data Science') return course.category === 'Data Science';
-    if (activeCategory === 'Coming Soon') return course.status === 'coming-soon';
+  // Helper to filter courses based on category
+  const checkCourseMatchesCategory = (course: Course, cat: CategoryFilter): boolean => {
+    if (cat === 'All Categories') return true;
+    if (cat === 'Coming Soon') {
+      return course.status === 'coming-soon' || course.category === 'Coming Soon';
+    }
+    // If course is coming soon, do not include in Cybersecurity or Data Science active tabs
+    if (course.status === 'coming-soon' || course.category === 'Coming Soon') {
+      return false;
+    }
+    if (cat === 'Cybersecurity') {
+      return (
+        course.category === 'Cybersecurity' ||
+        (Boolean(course.category) && (course.category.toLowerCase().includes('cyber') || course.category.toLowerCase().includes('security'))) ||
+        (Boolean(course.slug) && (course.slug.includes('cyber') || course.slug.includes('security') || course.slug.includes('penetration') || course.slug.includes('threat') || course.slug.includes('network-defense'))) ||
+        (Boolean(course.title) && (course.title.toLowerCase().includes('cyber') || course.title.toLowerCase().includes('security') || course.title.toLowerCase().includes('hacking') || course.title.toLowerCase().includes('soc')))
+      );
+    }
+    if (cat === 'Data Science') {
+      return (
+        course.category === 'Data Science' ||
+        (Boolean(course.category) && course.category.toLowerCase().includes('data')) ||
+        (Boolean(course.slug) && (course.slug.includes('data-science') || course.slug.includes('data-analytics') || course.slug.includes('machine-learning') || course.slug.includes('power-bi') || course.slug.includes('data-engineering') || course.slug.includes('deep-learning'))) ||
+        (Boolean(course.title) && (course.title.toLowerCase().includes('data') || course.title.toLowerCase().includes('machine learning') || course.title.toLowerCase().includes('analytics') || course.title.toLowerCase().includes('power bi') || course.title.toLowerCase().includes('deep learning')))
+      );
+    }
     return true;
-  });
+  };
+
+  const getCategoryCount = (cat: CategoryFilter) => {
+    return courses.filter((c) => checkCourseMatchesCategory(c, cat)).length;
+  };
+
+  // Filter courses based on active categories
+  const filteredCourses = courses.filter((course) => checkCourseMatchesCategory(course, activeCategory));
 
   return (
-    <div className="space-y-0">
+    <div className="space-y-0 bg-warm-ivory text-deep-navy overflow-x-clip">
       <SEO 
-        title="Learn Technology. Build Your Future." 
-        description="Learn in-demand technology skills through practical, industry-focused courses designed to help you build real-world knowledge and become career ready."
+        title="Learn Technology. Build What Matters." 
+        description="Learn in-demand technology and AI skills through practical, industry-focused courses designed to help you build real-world knowledge and become career ready."
         canonical="/"
       />
-      {/* 3. HERO SECTION */}
-      <section className="relative overflow-hidden bg-deep-navy-950 text-white py-20 sm:py-28">
-        <div className="absolute inset-0 opacity-20 pointer-events-none bg-[linear-gradient(to_right,#f59e0b_1px,transparent_1px),linear-gradient(to_bottom,#f59e0b_1px,transparent_1px)] bg-[size:3.5rem_3.5rem] [mask-image:linear-gradient(to_bottom,black,transparent_85%)]" />
-        <div className="absolute -right-40 -top-40 h-[32rem] w-[32rem] rounded-full border border-amber-400/20" />
-        <div className="absolute -right-24 -top-24 h-[24rem] w-[24rem] rounded-full border border-amber-400/20" />
 
-        <div className="relative z-10 mx-auto grid max-w-7xl grid-cols-1 items-center gap-14 px-4 sm:px-6 lg:grid-cols-12 lg:px-8">
-          <div className="lg:col-span-7">
-            <div className="mb-6 flex items-center gap-3 text-xs font-bold uppercase tracking-[0.24em] text-amber-400">
-              <span className="h-px w-10 bg-amber-400" />
-              {hero.subtitle}
-            </div>
-            <h1 
-              className="max-w-3xl font-display text-5xl font-extrabold leading-[0.98] tracking-tight text-white sm:text-7xl"
-              dangerouslySetInnerHTML={{ __html: hero.title }}
-            />
-            <p className="mt-7 max-w-xl text-base leading-relaxed text-stone-300 sm:text-lg">
-              {hero.description}
+      {/* ===============================================================
+          1. HERO SECTION (WITH BOY IMAGE & STATS STRIP)
+      ================================================================ */}
+      <HeroSlider />
+
+      {/* ===============================================================
+          2. REAL-WORLD ENGINEERING SKILLS SHOWCASE & SANDBOX RUNNER
+      ================================================================ */}
+      <RealWorldSkillsSection />
+
+      {/* ===============================================================
+          4. PROGRAM CATALOG / FEATURED PROGRAM TRACKS & COURSES
+      ================================================================ */}
+      <section id="programs" className="section-padding bg-white border-b border-light-taupe/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          
+          {/* SECTION HEADER */}
+          <div className="text-center max-w-3xl mx-auto space-y-2">
+            <span className="text-burnt-orange text-xs font-extrabold tracking-widest uppercase block">
+              EXPLORE CURRICULUM
+            </span>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-display font-extrabold text-deep-navy">
+              Featured Program Tracks & Courses
+            </h2>
+            <p className="text-warm-gray text-xs sm:text-sm leading-relaxed">
+              Explore specialized program tracks in <strong>Cybersecurity</strong>, <strong>Data Science</strong>, and upcoming programs.
             </p>
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-              <Link to="/courses" className="btn-primary inline-flex items-center justify-center gap-2 rounded-lg px-7 py-3.5 text-sm font-bold">
-                Start building <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link to="/about" className="inline-flex items-center justify-center rounded-lg border border-stone-700 px-7 py-3.5 text-sm font-bold text-stone-200 transition-colors hover:border-amber-400 hover:text-amber-400">
-                See how it works
-              </Link>
+          </div>
+
+          {/* 2-Column Grid: Left Category Sidebar + Right Course Cards */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+            
+            {/* Left Category Sidebar (Desktop - Sticky) */}
+            <aside className="hidden lg:block lg:col-span-3 bg-white border border-light-taupe rounded-2xl p-3 shadow-2xs sticky top-[84px] sm:top-24 self-start">
+              <div className="px-3 py-2 border-b border-light-taupe/80 mb-2">
+                <span className="text-[11px] font-extrabold text-deep-navy uppercase tracking-wider block">
+                  Program Tracks
+                </span>
+              </div>
+              <div className="space-y-1.5">
+                {CATEGORIES.map((cat) => {
+                  const IconComponent = cat.icon;
+                  const isActive = activeCategory === cat.id;
+                  const count = getCategoryCount(cat.id);
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setActiveCategory(cat.id)}
+                      className={`w-full flex items-center justify-between px-3.5 py-3 text-xs font-bold rounded-xl transition-all text-left cursor-pointer ${
+                        isActive
+                          ? 'bg-burnt-orange text-white shadow-sm'
+                          : 'text-deep-navy hover:bg-warm-ivory/80 hover:text-burnt-orange'
+                      }`}
+                    >
+                      <span className="flex items-center gap-2.5">
+                        <IconComponent className={`w-4 h-4 ${isActive ? 'text-white' : 'text-burnt-orange'}`} />
+                        <span>{cat.label}</span>
+                      </span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-extrabold transition-colors ${
+                        isActive ? 'bg-white/20 text-white' : 'bg-warm-ivory border border-light-taupe/80 text-warm-gray'
+                      }`}>
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Sidebar Info Card */}
+              <div className="mt-4 p-3 bg-burnt-orange/5 border border-burnt-orange/20 rounded-xl space-y-1.5 text-left">
+                
+                <p className="text-[11px] text-warm-gray leading-relaxed">
+                  Industry-focused learning, practical projects, and career preparation.
+                </p>
+              </div>
+            </aside>
+
+            {/* Horizontal scrollable pills filter (Mobile / Tablet) */}
+            <div className="lg:hidden w-full overflow-x-auto pb-2 scrollbar-none flex gap-2 mb-2">
+              {CATEGORIES.map((cat) => {
+                const IconComponent = cat.icon;
+                const isActive = activeCategory === cat.id;
+                const count = getCategoryCount(cat.id);
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setActiveCategory(cat.id)}
+                    className={`px-3.5 py-2 text-xs font-bold rounded-xl whitespace-nowrap border flex-shrink-0 flex items-center gap-2 transition-all cursor-pointer ${
+                      isActive
+                        ? 'bg-burnt-orange text-white border-burnt-orange shadow-sm'
+                        : 'bg-white text-deep-navy border-light-taupe hover:bg-warm-ivory/60'
+                    }`}
+                  >
+                    <IconComponent className="w-3.5 h-3.5" />
+                    <span>{cat.label}</span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
+                      isActive ? 'bg-white/20 text-white' : 'bg-warm-ivory text-warm-gray'
+                    }`}>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
-            <div className="mt-10 flex flex-wrap gap-x-8 gap-y-3 border-t border-stone-800 pt-5 text-xs font-semibold text-stone-400">
-              <span className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-amber-400" /> Project-led</span>
-              <span className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-amber-400" /> Expert guided</span>
-              <span className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-amber-400" /> Learn at your pace</span>
-            </div>
-          </div>
 
-          <div className="relative lg:col-span-5">
-            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="relative overflow-hidden border border-stone-700 bg-stone-950 shadow-2xl shadow-black/50">
-              <div className="flex items-center justify-between border-b border-stone-800 px-5 py-4">
-                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-stone-500">Oxyfied / your progress</span>
-                <span className="flex items-center gap-2 text-[10px] font-bold uppercase text-amber-400"><span className="h-2 w-2 rounded-full bg-amber-400" /> Live</span>
-              </div>
-              <div className="space-y-7 p-6 sm:p-8">
-                <div>
-                  <div className="mb-3 flex items-end justify-between"><span className="font-display text-2xl font-bold">Build momentum.</span><span className="font-mono text-sm text-amber-400">01 / 04</span></div>
-                  <div className="h-2 bg-stone-800"><div className="h-full w-1/4 bg-amber-400" /></div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="border border-stone-800 bg-stone-900 p-4"><ShieldCheck className="mb-5 h-5 w-5 text-amber-400" /><span className="block text-xs text-stone-500">Track one</span><strong className="mt-1 block text-sm">Cybersecurity</strong></div>
-                  <div className="border border-stone-800 bg-stone-900 p-4"><TrendingUp className="mb-5 h-5 w-5 text-orange-400" /><span className="block text-xs text-stone-500">Track two</span><strong className="mt-1 block text-sm">Data science</strong></div>
-                </div>
-                <div className="border-l-2 border-amber-400 pl-4"><p className="font-mono text-xs leading-relaxed text-stone-400">&gt; learn by doing<br /><span className="text-amber-400">&gt; ship work you understand</span></p></div>
-              </div>
-            </motion.div>
-            <div className="absolute -bottom-5 -left-5 hidden border border-amber-400/50 bg-amber-400 px-4 py-3 text-xs font-black uppercase tracking-widest text-stone-950 sm:block">Make it real.</div>
-          </div>
-        </div>
-      </section>
-
-      {/* 4. TRUST SECTION */}
-      <section className="bg-stone-900 border-y border-stone-850 py-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
-          <p className="text-xs font-bold text-stone-400 uppercase tracking-widest">
-            Master Skills That Matter in the Real World
-          </p>
-          <div className="flex flex-wrap justify-center gap-6 sm:gap-12 md:gap-16 text-stone-300 font-display font-medium text-sm sm:text-base">
-            <span className="flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-amber-500" />
-              Practical Labs
-            </span>
-            <span className="flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-amber-500" />
-              Expert-Led Coursework
-            </span>
-            <span className="flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-amber-500" />
-              Project-Based Portfolios
-            </span>
-            <span className="flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-amber-500" />
-              Career-Focused Outcomes
-            </span>
-            <span className="flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-amber-500" />
-              Industry Certification
-            </span>
-          </div>
-        </div>
-      </section>
-
-      {/* 5. EXPLORE PROGRAMS & FILTER SYSTEM */}
-      <section id="programs" className="section-padding">
-        <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
-          <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-white">
-            Explore Our Programs
-          </h2>
-          <p className="text-stone-400 text-sm sm:text-base leading-relaxed">
-            Build practical skills in the technologies shaping tomorrow's careers. Get started with our core certificate tracks.
-          </p>
-
-          {/* Desktop Filter Layout */}
-          <div className="hidden sm:flex justify-center gap-2.5 pt-4">
-            {(['All', 'Cybersecurity', 'Data Science', 'Coming Soon'] as const).map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                className={`px-5 py-2 text-xs font-bold rounded-lg transition-all border ${
-                  activeCategory === cat
-                    ? 'bg-amber-500 text-stone-950 border-amber-500 shadow font-bold'
-                    : 'bg-stone-900 text-stone-300 border-stone-850 hover:border-stone-700 hover:text-white'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-
-          {/* Mobile Horizontal scrolling tabs */}
-          <div className="sm:hidden flex overflow-x-auto gap-2 pb-2 scrollbar-none px-4 -mx-4 justify-start">
-            {(['All', 'Cybersecurity', 'Data Science', 'Coming Soon'] as const).map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                className={`px-4 py-2 text-xs font-bold rounded-lg whitespace-nowrap border flex-shrink-0 ${
-                  activeCategory === cat
-                    ? 'bg-amber-500 text-stone-950 border-amber-500'
-                    : 'bg-stone-900 text-stone-350 border-stone-850'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-        </div>
-        {/* Dynamic Grid Layout */}
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[1, 2, 3].map((n) => (
-              <div key={n} className="bg-stone-900 border border-stone-850 rounded-2xl p-5 space-y-4 animate-pulse">
-                <div className="aspect-[16/10] bg-stone-950/60 rounded-xl" />
-                <div className="h-4 bg-stone-950/60 rounded w-3/4" />
-                <div className="h-3 bg-stone-950/60 rounded w-1/2" />
-                <div className="h-6 bg-stone-950/60 rounded" />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredCourses.map((course) => {
-              const isComingSoon = course.status === 'coming-soon';
+            {/* Right Courses Cards Grid */}
+            <div className="lg:col-span-9 space-y-6">
               
+              {/* Header / Results counter */}
+              <div className="flex items-center justify-between border-b border-light-taupe/80 pb-3">
+                <span className="text-xs font-bold text-warm-gray">
+                  Showing <strong className="text-deep-navy">{filteredCourses.length}</strong> Programs in{' '}
+                  <span className="text-burnt-orange font-extrabold">
+                    {activeCategory}
+                  </span>
+                </span>
+                <Link
+                  to="/courses"
+                  className="text-xs font-bold text-burnt-orange hover:text-burnt-orange-dark inline-flex items-center gap-1 group"
+                >
+                  <span>View Full Catalog</span>
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </div>
+
+              {/* Grid / Skeletons / Empty State */}
+              {isLoading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                  {[1, 2, 3, 4, 5, 6].map((n) => (
+                    <div key={n} className="bg-white border border-light-taupe/70 rounded-2xl p-4 space-y-3.5 animate-pulse shadow-2xs">
+                      <div className="flex justify-between items-center">
+                        <div className="h-4 bg-soft-beige rounded-full w-24" />
+                        <div className="h-4 bg-soft-beige rounded w-16" />
+                      </div>
+                      <div className="aspect-[16/10] bg-soft-beige rounded-xl" />
+                      <div className="flex items-center gap-2.5">
+                        <div className="h-9 w-9 bg-soft-beige rounded-xl flex-shrink-0" />
+                        <div className="h-4 bg-soft-beige rounded w-3/4" />
+                      </div>
+                      <div className="h-3 bg-soft-beige rounded w-1/2" />
+                      <div className="flex gap-1.5">
+                        <div className="h-4 bg-soft-beige rounded-full w-14" />
+                        <div className="h-4 bg-soft-beige rounded-full w-14" />
+                      </div>
+                      <div className="pt-2 border-t border-light-taupe/50 flex justify-between items-center">
+                        <div className="h-4 bg-soft-beige rounded w-16" />
+                        <div className="h-6 bg-soft-beige rounded-full w-24" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : filteredCourses.length === 0 ? (
+                <div className="bg-white border border-light-taupe rounded-3xl p-10 sm:p-12 text-center space-y-3 shadow-2xs">
+                  <div className="w-12 h-12 mx-auto rounded-full bg-burnt-orange/10 flex items-center justify-center text-burnt-orange">
+                    <Layers className="w-6 h-6" />
+                  </div>
+                  <h3 className="font-display font-bold text-base text-deep-navy">
+                    No programs available in this track yet.
+                  </h3>
+                  <p className="text-xs text-warm-gray max-w-sm mx-auto">
+                    We are regularly adding new tracks. Explore all programs or view our complete catalog.
+                  </p>
+                  <div className="pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setActiveCategory('All Categories')}
+                      className="btn-secondary px-4 py-2 text-xs font-bold rounded-full cursor-pointer"
+                    >
+                      View All Categories
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <motion.div 
+                  layout
+                  className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5"
+                >
+                  <AnimatePresence mode="popLayout">
+                    {filteredCourses.map((course) => (
+                      <motion.div
+                        layout
+                        initial={{ opacity: 0, scale: 0.96 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.96 }}
+                        transition={{ duration: 0.25 }}
+                        key={course.id}
+                      >
+                        <CourseCard course={course} />
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </motion.div>
+              )}
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+
+
+       
+
+      {/* ===============================================================
+          5. INTERACTIVE "INSIDE THE CLASSROOM" SHOWCASE
+      ================================================================ */}
+      <section id="classroom-experience" className="section-padding bg-warm-ivory border-b border-light-taupe/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+          
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-burnt-orange bg-burnt-orange/10 border border-burnt-orange/20 uppercase tracking-widest">
+              <Sparkles className="w-3.5 h-3.5" />
+              The Oxyfied Methodology
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-deep-navy tracking-tight">
+              Inside the Oxyfied Classroom
+            </h2>
+            <p className="text-warm-gray text-xs sm:text-sm leading-relaxed">
+              We replaced passive lectures with active engineering. Explore how interactive sandboxes, live datasets, and 1-on-1 code reviews accelerate mastery.
+            </p>
+          </div>
+
+          {/* Interactive Tab Switcher */}
+          <div className="flex flex-wrap justify-center gap-2 sm:gap-2.5">
+            {[
+              { id: 'terminal', label: '1. Live Linux Sandbox', icon: Terminal },
+              { id: 'notebook', label: '2. Interactive Data Notebooks', icon: Code2 },
+              { id: 'mentorship', label: '3. 1-on-1 Mentor Audits', icon: Users },
+              { id: 'certificate', label: '4. Verifiable Credentials', icon: Award }
+            ].map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeLabTab === tab.id;
               return (
-                <div 
-                  key={course.id}
-                  onClick={() => {
-                    if (!isComingSoon) {
-                      navigate(`/courses/${course.slug}`);
-                    }
-                  }}
-                  className={`bg-stone-900 border border-stone-850 rounded-2xl overflow-hidden flex flex-col justify-between hover:border-amber-500/30 transition-all duration-300 shadow-xl group ${
-                    !isComingSoon ? 'cursor-pointer' : ''
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveLabTab(tab.id as any)}
+                  className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold transition-all border cursor-pointer ${
+                    isActive
+                      ? 'bg-deep-navy text-white border-deep-navy shadow-sm'
+                      : 'bg-warm-white text-deep-navy border-light-taupe hover:border-burnt-orange hover:bg-soft-beige/50'
                   }`}
                 >
-                  {/* Course Card Header Image */}
-                  <div className="relative aspect-[16/10] overflow-hidden bg-stone-950 border-b border-stone-850/60">
-                    <img
-                      src={course.image}
-                      alt={course.title}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <span className="absolute top-3 left-3 px-2.5 py-1 bg-deep-navy-950/80 backdrop-blur text-white text-[10px] font-bold rounded-md uppercase tracking-wider border border-white/10">
-                      {course.category}
-                    </span>
-                    {isComingSoon && (
-                      <span className="absolute top-3 right-3 px-2.5 py-1 bg-amber-955 border border-amber-850/30 text-amber-450 text-[10px] font-bold rounded-md uppercase tracking-wider">
-                        Coming Soon
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Course Card Body */}
-                  <div className="p-6 flex-1 flex flex-col justify-between space-y-6">
-                    <div className="space-y-3">
-                      <h3 className="font-display font-bold text-lg text-white group-hover:text-amber-400 transition-colors leading-snug">
-                        {course.title}
-                      </h3>
-                      <p className="text-stone-450 text-xs leading-relaxed line-clamp-3">
-                        {course.description}
-                      </p>
-                    </div>
-
-                    {/* Skill Badges */}
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      {course.skills.slice(0, 3).map((skill) => (
-                        <span key={skill} className="px-2.5 py-0.5 bg-stone-950 text-stone-300 text-[10px] font-bold rounded">
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
-
-                    {/* Metadata Footer stats */}
-                    {!isComingSoon && (
-                      <div className="flex items-center justify-between text-[11px] text-stone-500 font-bold border-t border-stone-850 pt-4">
-                        <span className="flex items-center gap-1.5">
-                          <Clock className="w-4 h-4 text-stone-550" />
-                          {course.duration}
-                        </span>
-                        <span className="flex items-center gap-1.5">
-                          <BookOpen className="w-4 h-4 text-stone-550" />
-                          {course.lessons} lessons
-                        </span>
-                        <span className="flex items-center gap-1.5 text-amber-500">
-                          <Star className="w-4 h-4 fill-current animate-pulse" />
-                          {course.rating}
-                        </span>
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-between pt-3 border-t border-stone-850">
-                      {isComingSoon ? (
-                        <div className="w-full space-y-2.5" onClick={(e) => e.stopPropagation()}>
-                          {notifiedEmails[course.id] ? (
-                            <span className="text-[11px] text-amber-400 font-bold text-center block py-2 bg-amber-500/5 border border-amber-550/20 rounded-xl">
-                              ✓ You will be notified when this program opens!
-                            </span>
-                          ) : (
-                            <form onSubmit={(e) => handleNotifySubmit(e, course.id)} className="flex gap-2">
-                              <input
-                                type="email"
-                                required
-                                placeholder="Enter email to notify"
-                                value={emailInput[course.id] || ''}
-                                onChange={(e) => handleEmailChange(course.id, e.target.value)}
-                                className="flex-1 px-3 py-2 bg-stone-955 border border-stone-800 text-xs rounded-lg focus:outline-none focus:border-amber-500 text-white placeholder-stone-600 transition-all"
-                              />
-                              <button
-                                type="submit"
-                                className="px-3 py-2 bg-stone-900 hover:bg-stone-850 border border-stone-800 text-white text-xs font-semibold rounded-lg transition-colors flex-shrink-0"
-                              >
-                                Notify
-                              </button>
-                            </form>
-                          )}
-                        </div>
-                      ) : (
-                        <>
-                          <div className="flex flex-col">
-                            <span className="text-stone-500 text-[10px] line-through font-semibold leading-none">
-                              ₹{course.originalPrice}
-                            </span>
-                            <span className="text-white font-display font-extrabold text-lg leading-tight">
-                              ₹{course.price}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Link
-                              to={`/courses/${course.slug}`}
-                              onClick={(e) => e.stopPropagation()}
-                              className="btn-secondary px-3.5 py-2 text-xs font-bold rounded-lg"
-                            >
-                              Details
-                            </Link>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleEnrollClick(course);
-                              }}
-                              className="btn-primary px-3.5 py-2 text-xs font-bold rounded-lg"
-                            >
-                              Enroll
-                            </button>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-burnt-orange' : 'text-warm-gray'}`} />
+                  {tab.label}
+                </button>
               );
             })}
           </div>
-        )}
+
+          {/* Dynamic Interactive Tab Content Showcase */}
+          <div className="bg-warm-white border border-light-taupe rounded-3xl p-6 sm:p-10 shadow-sm">
+            <AnimatePresence mode="wait">
+              {activeLabTab === 'terminal' && (
+                <motion.div
+                  key="terminal"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.3 }}
+                  className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center text-left"
+                >
+                  <div className="lg:col-span-6 space-y-4">
+                    <span className="text-xs font-bold uppercase tracking-wider text-burnt-orange block">
+                      Hands-On Security Simulator
+                    </span>
+                    <h3 className="text-2xl font-display font-extrabold text-deep-navy">
+                      Execute Commands in a Production Linux Sandbox
+                    </h3>
+                    <p className="text-xs sm:text-sm text-warm-gray leading-relaxed">
+                      Practice network packet captures, port auditing, firewall deployments, and directory privilege hardening right from your browser without complex local setups.
+                    </p>
+                    <ul className="space-y-2.5 text-xs font-semibold text-deep-navy pt-2">
+                      <li className="flex items-center gap-2.5">
+                        <CheckCircle className="w-4 h-4 text-sage-green flex-shrink-0" />
+                        <span>Pre-configured virtual containers with Wireshark, Snort, and Nmap</span>
+                      </li>
+                      <li className="flex items-center gap-2.5">
+                        <CheckCircle className="w-4 h-4 text-sage-green flex-shrink-0" />
+                        <span>Instant feedback on command syntax errors and permission audits</span>
+                      </li>
+                      <li className="flex items-center gap-2.5">
+                        <CheckCircle className="w-4 h-4 text-sage-green flex-shrink-0" />
+                        <span>Real exploit mitigation capstones mapped to NIST standards</span>
+                      </li>
+                    </ul>
+                    <div className="pt-2">
+                      <Link to="/courses" className="btn-primary px-6 py-2 text-xs font-bold rounded-full inline-flex items-center gap-2">
+                        Explore Sandboxes <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </div>
+                  </div>
+
+                  <div className="lg:col-span-6 rounded-2xl overflow-hidden border border-light-taupe shadow-sm bg-warm-white">
+                    <img 
+                      src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=900&auto=format&fit=crop" 
+                      alt="Cybersecurity student analyzing network packets in terminal" 
+                      className="w-full aspect-[16/10] object-cover"
+                    />
+                  </div>
+                </motion.div>
+              )}
+
+              {activeLabTab === 'notebook' && (
+                <motion.div
+                  key="notebook"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.3 }}
+                  className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center text-left"
+                >
+                  <div className="lg:col-span-6 space-y-4">
+                    <span className="text-xs font-bold uppercase tracking-wider text-sage-green block">
+                      Data & Machine Learning Environment
+                    </span>
+                    <h3 className="text-2xl font-display font-extrabold text-deep-navy">
+                      Interactive Python Notebooks & Predictive Models
+                    </h3>
+                    <p className="text-xs sm:text-sm text-warm-gray leading-relaxed">
+                      Clean real-world messy datasets, build multi-variable regressions, and visualize correlations with Seaborn and Pandas inside guided Jupyter notebooks.
+                    </p>
+                    <ul className="space-y-2.5 text-xs font-semibold text-deep-navy pt-2">
+                      <li className="flex items-center gap-2.5">
+                        <CheckCircle className="w-4 h-4 text-sage-green flex-shrink-0" />
+                        <span>Live statistical dataset imports (customer churn, credit fraud, sales trends)</span>
+                      </li>
+                      <li className="flex items-center gap-2.5">
+                        <CheckCircle className="w-4 h-4 text-sage-green flex-shrink-0" />
+                        <span>Scikit-Learn classification algorithms with hyperparameter tuning</span>
+                      </li>
+                      <li className="flex items-center gap-2.5">
+                        <CheckCircle className="w-4 h-4 text-sage-green flex-shrink-0" />
+                        <span>Deploy interactive web dashboards using Streamlit</span>
+                      </li>
+                    </ul>
+                    <div className="pt-2">
+                      <Link to="/courses/master-program-data-science-ai" className="btn-primary px-6 py-2 text-xs font-bold rounded-full inline-flex items-center gap-2">
+                        Explore Data Labs <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </div>
+                  </div>
+
+                  <div className="lg:col-span-6 rounded-2xl overflow-hidden border border-light-taupe shadow-sm bg-warm-white">
+                    <img 
+                      src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=900&auto=format&fit=crop" 
+                      alt="Data analytics workspace with predictive models and charts" 
+                      className="w-full aspect-[16/10] object-cover"
+                    />
+                  </div>
+                </motion.div>
+              )}
+
+              {activeLabTab === 'mentorship' && (
+                <motion.div
+                  key="mentorship"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.3 }}
+                  className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center text-left"
+                >
+                  <div className="lg:col-span-6 space-y-4">
+                    <span className="text-xs font-bold uppercase tracking-wider text-burnt-orange block">
+                      Practitioner Guidance
+                    </span>
+                    <h3 className="text-2xl font-display font-extrabold text-deep-navy">
+                      Detailed Code Reviews & Capstone Evaluation
+                    </h3>
+                    <p className="text-xs sm:text-sm text-warm-gray leading-relaxed">
+                      Every capstone project you submit is audited by senior practitioners who provide actionable line-by-line architecture and vulnerability feedback.
+                    </p>
+                    <ul className="space-y-2.5 text-xs font-semibold text-deep-navy pt-2">
+                      <li className="flex items-center gap-2.5">
+                        <CheckCircle className="w-4 h-4 text-sage-green flex-shrink-0" />
+                        <span>Constructive architectural improvements and vulnerability reviews</span>
+                      </li>
+                      <li className="flex items-center gap-2.5">
+                        <CheckCircle className="w-4 h-4 text-sage-green flex-shrink-0" />
+                        <span>Advice on crafting resume-ready Github repositories</span>
+                      </li>
+                      <li className="flex items-center gap-2.5">
+                        <CheckCircle className="w-4 h-4 text-sage-green flex-shrink-0" />
+                        <span>Dedicated Q&A support channels for fast unblocking</span>
+                      </li>
+                    </ul>
+                    <div className="pt-2">
+                      <Link to="/about" className="btn-secondary px-6 py-2 text-xs font-bold rounded-full inline-flex items-center gap-2">
+                        Meet Our Instructors <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </div>
+                  </div>
+
+                  <div className="lg:col-span-6 rounded-2xl overflow-hidden border border-light-taupe shadow-sm bg-warm-white">
+                    <img 
+                      src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=900&auto=format&fit=crop" 
+                      alt="Student and technical mentor collaborating on project feedback" 
+                      className="w-full aspect-[16/10] object-cover"
+                    />
+                  </div>
+                </motion.div>
+              )}
+
+              {activeLabTab === 'certificate' && (
+                <motion.div
+                  key="certificate"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.3 }}
+                  className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center text-left"
+                >
+                  <div className="lg:col-span-6 space-y-4">
+                    <span className="text-xs font-bold uppercase tracking-wider text-sage-green block">
+                      Career Verification
+                    </span>
+                    <h3 className="text-2xl font-display font-extrabold text-deep-navy">
+                      Earn Industry-Recognized Verifiable Certifications
+                    </h3>
+                    <p className="text-xs sm:text-sm text-warm-gray leading-relaxed">
+                      Complete all module labs and the final capstone audit to unlock a cryptographic, recruiter-verifiable credential shareable to LinkedIn.
+                    </p>
+                    <ul className="space-y-2.5 text-xs font-semibold text-deep-navy pt-2">
+                      <li className="flex items-center gap-2.5">
+                        <CheckCircle className="w-4 h-4 text-sage-green flex-shrink-0" />
+                        <span>Unique verification URL & QR code for recruiter background checks</span>
+                      </li>
+                      <li className="flex items-center gap-2.5">
+                        <CheckCircle className="w-4 h-4 text-sage-green flex-shrink-0" />
+                        <span>Direct 1-click addition to your LinkedIn Licenses & Certifications</span>
+                      </li>
+                      <li className="flex items-center gap-2.5">
+                        <CheckCircle className="w-4 h-4 text-sage-green flex-shrink-0" />
+                        <span>Lifetime verification status backed by Oxyfied</span>
+                      </li>
+                    </ul>
+                    <div className="pt-2">
+                      <Link to="/courses" className="btn-primary px-6 py-2 text-xs font-bold rounded-full inline-flex items-center gap-2">
+                        Start Earning Today <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </div>
+                  </div>
+
+                  <div className="lg:col-span-6 rounded-2xl overflow-hidden border border-light-taupe shadow-sm bg-warm-white p-6 relative">
+                    <div className="border-2 border-dashed border-light-taupe p-6 rounded-xl text-center space-y-3 bg-warm-white">
+                      <div className="w-12 h-12 mx-auto rounded-full bg-burnt-orange/10 border border-burnt-orange/30 flex items-center justify-center text-burnt-orange">
+                        <Award className="w-6 h-6" />
+                      </div>
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-warm-gray block">
+                        Official Certificate of Competency
+                      </span>
+                      <h4 className="font-display font-extrabold text-lg text-deep-navy">
+                        Alex Johnson
+                      </h4>
+                      <p className="text-xs text-warm-gray max-w-xs mx-auto">
+                        Has successfully defended capstone requirements for the <strong className="text-deep-navy">Data Science & AI Specialist Track</strong>.
+                      </p>
+                      <div className="pt-2 flex items-center justify-between text-[10px] font-mono text-warm-gray border-t border-light-taupe">
+                        <span>ID: CERT-OXYFIED-849201</span>
+                        <span className="text-sage-green font-bold uppercase">✓ Verified</span>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+        </div>
       </section>
 
-      {/* 6. CYBERSECURITY FEATURED PROGRAM SECTION */}
-      <section className="bg-[#0f0d0b] text-white py-20 relative overflow-hidden border-y border-stone-900">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(217,119,6,0.06),transparent_45%)] pointer-events-none" />
-        
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          {/* Left Column Content */}
-          <div className="lg:col-span-7 space-y-6 text-left">
-            <span className="inline-block px-3 py-1 bg-amber-950/20 border border-amber-900/25 text-amber-450 text-xs font-semibold rounded-md uppercase tracking-wider">
-              Featured Track // Available Now
+      {/* ===============================================================
+          6. TRACK SPOTLIGHT: CYBERSECURITY & SYSTEM DEFENSE
+      ================================================================ */}
+      <section className="bg-warm-white py-16 lg:py-20 border-b border-light-taupe/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+          
+          <div className="lg:col-span-7 space-y-5 text-left">
+            <span className="inline-block px-3 py-1 bg-burnt-orange/10 border border-burnt-orange/20 text-burnt-orange text-xs font-bold rounded-full uppercase tracking-wider">
+              Specialist Track // Live Cohorts Available
             </span>
-            <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-white tracking-tight leading-tight">
+            <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-deep-navy tracking-tight leading-tight">
               Master Cybersecurity Through <br className="hidden sm:inline" />
-              <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">
-                Practical Defensive Learning
-              </span>
+              <span className="text-burnt-orange">Practical Defensive Hardening</span>
             </h2>
-            <p className="text-stone-300 text-sm leading-relaxed max-w-2xl">
-              Gain intermediate to advanced defensive hacking capabilities. Oxyfied is structured around defensive configurations, system pen-testing scans, network captures, and auditing report methodologies. Build actual competence in:
+            <p className="text-warm-gray text-xs sm:text-sm leading-relaxed max-w-2xl">
+              Gain intermediate to production defensive capabilities. Oxyfied is structured around defensive configurations, pen-testing scans, network packet captures, and auditing report methodologies.
             </p>
 
-            {/* Grid checklist */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3.5 gap-x-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6">
               {[
-                'Cybersecurity Fundamentals',
-                'Ethical Hacking Scanning & Vulns',
-                'Networking & Wireshark Captures',
-                'Web Application Security',
+                'Ethical Hacking Scanning & Recon',
+                'Wireshark Live Packet Captures',
+                'Web Application Security & OWASP',
                 'Linux Command Line Hardening',
-                'Vulnerability Assessments',
+                'Vulnerability Assessments & CVEs',
                 'Firewalls & Snort IDS Setup',
-                'SIEM Logs Splunk Monitoring'
+                'Splunk SIEM Log Ingestion',
+                'Incident Response Playbooks'
               ].map((skill) => (
                 <div key={skill} className="flex items-start gap-2.5">
-                  <CheckCircle2 className="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" />
-                  <span className="text-xs font-medium text-stone-300">{skill}</span>
+                  <CheckCircle2 className="w-4 h-4 text-burnt-orange mt-0.5 flex-shrink-0" />
+                  <span className="text-xs font-bold text-deep-navy">{skill}</span>
                 </div>
               ))}
             </div>
 
-            <div className="pt-4 flex flex-wrap gap-4 items-center">
-              <Link to="/courses/cybersecurity" className="btn-primary px-6 py-3 text-xs font-bold rounded-lg flex items-center gap-1.5 shadow">
-                Explore Cybersecurity
+            <div className="pt-2 flex flex-wrap gap-4 items-center">
+              <Link to="/courses" className="btn-primary px-6 py-2.5 text-xs font-bold rounded-full flex items-center gap-2 shadow-xs">
+                Explore Security Programs
                 <ArrowRight className="w-4 h-4" />
               </Link>
-              <span className="text-[11px] text-stone-400 font-semibold uppercase tracking-wider flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-amber-500 animate-pulse" />
+              <span className="text-xs text-warm-gray font-bold flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-sage-green" />
                 Includes 3 Hands-On Labs & Capstone Audit
               </span>
             </div>
           </div>
 
-          {/* Right Column visual box */}
-          <div className="lg:col-span-5 bg-stone-900/60 border border-stone-850 rounded-2xl p-6 shadow-2xl backdrop-blur-sm">
-            <h3 className="font-display font-semibold text-sm text-stone-200 uppercase tracking-widest mb-4 flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-450 animate-ping" />
-              Curriculum Outline
+          <div className="lg:col-span-5 rounded-3xl border border-light-taupe bg-warm-ivory p-5 sm:p-6 shadow-sm text-left space-y-4">
+            <div className="aspect-[16/10] rounded-2xl overflow-hidden border border-light-taupe mb-4">
+              <img 
+                src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=800&auto=format&fit=crop" 
+                alt="Security operations monitoring dashboard"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            
+            <h3 className="font-display font-bold text-xs text-deep-navy uppercase tracking-wider flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-burnt-orange animate-ping" />
+              Syllabus Structure
             </h3>
             
-            <div className="space-y-3 text-xs">
+            <div className="space-y-2 text-xs">
               {[
                 { module: 'Module 1-3', title: 'Linux, Networking & Security Fundamentals' },
                 { module: 'Module 4-6', title: 'Ethical Hacking, Web & Network Exploits' },
                 { module: 'Module 7-8', title: 'Vulnerability Analysis & SIEM Operations' },
                 { module: 'Module 9-10', title: 'Defensive Labs & Capstone Audit Project' }
               ].map((step, idx) => (
-                <div key={idx} className="flex items-center justify-between p-3.5 bg-stone-950 rounded-xl border border-stone-850 hover:border-amber-500/25 transition-colors">
+                <div key={idx} className="flex items-center justify-between p-3 bg-warm-white rounded-xl border border-light-taupe hover:border-burnt-orange transition-colors">
                   <div className="text-left">
-                    <span className="text-[10px] text-amber-500 font-bold block">{step.module}</span>
-                    <span className="font-semibold text-stone-200 mt-0.5 block">{step.title}</span>
+                    <span className="text-[10px] text-burnt-orange font-bold block">{step.module}</span>
+                    <span className="font-bold text-deep-navy mt-0.5 block text-xs">{step.title}</span>
                   </div>
-                  <span className="text-[10px] font-bold text-stone-500 uppercase">Verified</span>
+                  <span className="text-[9px] font-bold text-sage-green uppercase bg-sage-green/15 px-2 py-0.5 rounded border border-sage-green/30">Verified</span>
                 </div>
               ))}
             </div>
           </div>
+
         </div>
       </section>
 
-      {/* 7. DATA SCIENCE FEATURED PROGRAM SECTION */}
-      <section className="bg-stone-955 py-20 relative border-b border-stone-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
-          {/* Left Column visual display */}
-          <div className="lg:col-span-5 order-2 lg:order-1">
-            <div className="relative bg-[#141210] border border-stone-850 rounded-2xl p-6 shadow-2xl">
-              <span className="absolute -top-3 left-6 px-3 py-1 bg-amber-500 text-stone-950 text-[10px] font-bold rounded uppercase tracking-wider">
-                Tools & Technologies Covered
-              </span>
-              
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-4 text-center">
-                {[
-                  { name: 'Python', desc: 'Core Programming' },
-                  { name: 'Pandas', desc: 'Data Manipulation' },
-                  { name: 'NumPy', desc: 'Matrix Math' },
-                  { name: 'SQL', desc: 'Database Querying' },
-                  { name: 'Matplotlib', desc: 'Data Plotting' },
-                  { name: 'Seaborn', desc: 'Statistical Plots' },
-                  { name: 'Scikit-Learn', desc: 'Machine Learning' },
-                  { name: 'Jupyter', desc: 'Notebook Workspaces' },
-                  { name: 'Git/GitHub', desc: 'Version Control' }
-                ].map((tech) => (
-                  <div key={tech.name} className="p-3 bg-stone-900 border border-stone-850 hover:border-amber-500/20 rounded-xl transition-all shadow-md">
-                    <span className="text-sm font-bold text-white block">{tech.name}</span>
-                    <span className="text-[10px] text-stone-400 block mt-0.5 leading-tight">{tech.desc}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column Content */}
-          <div className="lg:col-span-7 space-y-6 text-left order-1 lg:order-2">
-            <span className="inline-block px-3 py-1 bg-stone-900 border border-stone-850 text-stone-300 text-xs font-semibold rounded-md uppercase tracking-wider">
-              Core Track // In-Demand Skills
+      {/* ===============================================================
+          7. STUDENT CAPSTONE PROJECT SHOWCASE
+      ================================================================ */}
+      <section className="section-padding bg-warm-ivory border-b border-light-taupe/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+          
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-burnt-orange bg-burnt-orange/10 border border-burnt-orange/20 uppercase tracking-widest">
+              <FileCode2 className="w-3.5 h-3.5" />
+              Portfolio Proof
             </span>
-            <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-white tracking-tight leading-tight">
-              Turn Data Into Decisions <br />
-              <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">
-                With Project-Based Portfolios
-              </span>
+            <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-deep-navy tracking-tight">
+              Real Capstone Projects Built by Students
             </h2>
-            <p className="text-stone-400 text-sm leading-relaxed">
-              Build a strong foundation in programmatic analytics. Rather than relying on simple spreadsheets, learn to write logic parameters, clean complex datasets, conduct statistical hypotheses, and train predictive machine learning pipelines.
+            <p className="text-warm-gray text-xs sm:text-sm leading-relaxed max-w-xl mx-auto">
+              Every Oxyfied track culminates in production-grade portfolio projects you can showcase during technical interviews.
             </p>
+          </div>
 
-            <div className="space-y-3.5">
-              {[
-                { title: 'Write Clean Python Scripts', desc: 'Master variables, loops, custom function arguments, and library management pipelines.' },
-                { title: 'Aggregate Large Scale Tabular Data', desc: 'Clean missing rows, merge disparate tables, and aggregate metrics using Pandas and NumPy arrays.' },
-                { title: 'Build Predictive Models', desc: 'Configure linear regressions, classification trees, random forests, and parameter tuning grids.' }
-              ].map((step, idx) => (
-                <div key={idx} className="flex gap-3">
-                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-amber-550/10 border border-amber-500/20 flex items-center justify-center text-amber-400 font-bold text-xs mt-0.5">
-                    {idx + 1}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+            {[
+              {
+                title: 'Automated SIEM Log Parser & Threat Monitor',
+                category: 'Cybersecurity',
+                image: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=800&auto=format&fit=crop',
+                author: 'Liam Chen • SOC Analyst at CloudSec',
+                score: '99/100 Mentor Approved',
+                tech: ['Python', 'Snort IDS', 'Regex', 'Splunk']
+              },
+              {
+                title: 'Predictive Customer Churn ML Pipeline',
+                category: 'Data Science',
+                image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=800&auto=format&fit=crop',
+                author: 'Priya Sharma • BI Developer at FinTech Global',
+                score: '98/100 Mentor Approved',
+                tech: ['Scikit-Learn', 'Streamlit', 'Pandas', 'Seaborn']
+              },
+              {
+                title: 'Corporate Network Vulnerability Audit',
+                category: 'Cybersecurity',
+                image: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?q=80&w=800&auto=format&fit=crop',
+                author: 'Marcus Vance • Security Engineer',
+                score: '100/100 Mentor Approved',
+                tech: ['Wireshark', 'Linux Bash', 'Nmap', 'NIST']
+              }
+            ].map((project, idx) => (
+              <div 
+                key={idx} 
+                className="bg-warm-white border border-light-taupe rounded-2xl overflow-hidden shadow-2xs hover:shadow-md hover:border-burnt-orange transition-all duration-300 flex flex-col justify-between"
+              >
+                <div className="relative aspect-[16/10] overflow-hidden">
+                  <img 
+                    src={project.image} 
+                    alt={project.title} 
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                  />
+                  <span className="absolute top-3 left-3 px-2 py-0.5 bg-deep-navy/90 text-white text-[10px] font-bold rounded uppercase tracking-wider">
+                    {project.category}
+                  </span>
+                </div>
+
+                <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
+                  <div className="space-y-1.5">
+                    <span className="text-[10px] font-bold text-sage-green uppercase tracking-widest block">
+                      ✓ {project.score}
+                    </span>
+                    <h3 className="font-display font-bold text-sm sm:text-base text-deep-navy leading-snug">
+                      {project.title}
+                    </h3>
+                    <p className="text-xs text-warm-gray">
+                      By {project.author}
+                    </p>
                   </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-white">{step.title}</h4>
-                    <p className="text-xs text-stone-400 mt-0.5 leading-relaxed">{step.desc}</p>
+
+                  <div className="flex flex-wrap gap-1 pt-2 border-t border-light-taupe/70">
+                    {project.tech.map((t) => (
+                      <span key={t} className="px-2 py-0.5 bg-warm-ivory border border-light-taupe text-deep-navy text-[10px] font-bold rounded">
+                        {t}
+                      </span>
+                    ))}
                   </div>
                 </div>
-              ))}
-            </div>
-
-            <div className="pt-4 flex flex-wrap gap-4 items-center">
-              <Link to="/courses/data-science" className="btn-primary px-6 py-3 text-xs font-bold rounded-lg flex items-center gap-1.5 shadow">
-                Explore Data Science
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-              <span className="text-[11px] text-stone-400 font-semibold uppercase tracking-wider flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-amber-500 animate-pulse" />
-                Includes 3 Business Projects & Streamlit App
-              </span>
-            </div>
+              </div>
+            ))}
           </div>
+
         </div>
       </section>
 
-      {/* 8. WHY Oxyfied */}
-      <section className="bg-[#0f0d0b] border-b border-stone-900 py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
-            <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-white">
+      {/* ===============================================================
+          8. WHY OXYFIED (SIMPLE CLEAN EDUCATIONAL DESIGN)
+      ================================================================ */}
+      <section className="bg-white border-b border-light-taupe/80 py-14 sm:py-18 lg:py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+          <div className="text-center max-w-3xl mx-auto space-y-2.5">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-burnt-orange bg-burnt-orange/10 border border-burnt-orange/20 uppercase tracking-widest">
+              <Sparkles className="w-3.5 h-3.5" />
+              The Oxyfied Difference
+            </span>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-display font-extrabold text-deep-navy tracking-tight">
               Why Learn With Oxyfied?
             </h2>
-            <p className="text-stone-400 text-sm sm:text-base leading-relaxed">
-              We focus on building functional ability rather than offering standard passive video watching.
+            <p className="text-warm-gray text-xs sm:text-sm max-w-xl mx-auto leading-relaxed">
+              We prioritize building practical, job-ready technical competence through active engineering rather than passive video lectures.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 text-left">
             {[
-              { title: 'Practical Learning', icon: Layers, desc: 'Every topic is mapped directly to command outputs, coding environments, or terminal interactions.' },
-              { title: 'Industry-Relevant Curriculum', icon: ShieldCheck, desc: 'Syllabus guidelines are designed around production tech requirements, avoiding outdated logic.' },
-              { title: 'Real-World Projects', icon: Award, desc: 'Complete projects using actual code parameters, building a Github portfolio that stands out in recruiter reviews.' },
-              { title: 'Expert Guidance', icon: Users, desc: 'Courses are created and curated by industry practitioners who have guided enterprise systems configurations.' },
-              { title: 'Flexible Learning Pace', icon: Clock, desc: 'Learn on your schedule. Access lesson videos, datasets, resource files, and test files indefinitely.' },
-              { title: 'Career-Focused Skills', icon: TrendingUp, desc: 'Every lesson targets skills needed for junior to mid-level technician functions in modern engineering fields.' }
+              { 
+                title: 'Practical Hands-On Learning', 
+                icon: Layers, 
+                desc: 'Practice directly inside browser-based coding sandboxes, terminals, and live labs with zero configuration friction.',
+                tag: '100% Practical'
+              },
+              { 
+                title: 'Industry-Relevant Curriculum', 
+                icon: ShieldCheck, 
+                desc: 'Every syllabus is designed around modern production requirements and active hiring specifications across top tech teams.',
+                tag: 'Updated for 2026'
+              },
+              { 
+                title: 'Real-World Capstone Projects', 
+                icon: Award, 
+                desc: 'Build enterprise-grade projects with authentic datasets to create a verifiable GitHub portfolio that impresses recruiters.',
+                tag: 'Portfolio Ready'
+              },
+              { 
+                title: '1-on-1 Expert Mentorship', 
+                icon: Users, 
+                desc: 'Receive personalized line-by-line feedback on your code and project architectures from experienced industry practitioners.',
+                tag: 'Line-by-Line Audits'
+              },
+              { 
+                title: 'Flexible Learning Pace', 
+                icon: Clock, 
+                desc: 'Learn on your own schedule with lifetime access to session recordings, lab sandboxes, study materials, and community forums.',
+                tag: 'Lifetime Access'
+              },
+              { 
+                title: 'Career-Focused Outcomes', 
+                icon: TrendingUp, 
+                desc: 'Gain verified certifications and technical skills mapped directly to high-growth engineering and cybersecurity career roles.',
+                tag: 'Verified Skills'
+              }
             ].map((card, idx) => {
               const Icon = card.icon;
               return (
-                <div key={idx} className="bg-stone-900 border border-stone-850 p-6 rounded-2xl shadow-xl hover:border-amber-500/20 transition-all duration-300">
-                  <div className="w-10 h-10 rounded-xl bg-amber-550/10 flex items-center justify-center text-amber-400 mb-4 border border-amber-500/20">
-                    <Icon className="w-5.5 h-5.5" />
+                <div 
+                  key={idx} 
+                  className="bg-warm-ivory/60 border border-light-taupe rounded-2xl p-5 sm:p-6 shadow-2xs hover:bg-white hover:border-burnt-orange/60 hover:shadow-xs transition-all duration-200 flex flex-col justify-between space-y-3 group"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="w-10 h-10 rounded-xl bg-burnt-orange/10 border border-burnt-orange/20 flex items-center justify-center text-burnt-orange group-hover:scale-105 transition-transform">
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <span className="text-[10px] font-bold text-burnt-orange bg-burnt-orange/10 px-2 py-0.5 rounded-md border border-burnt-orange/20">
+                        {card.tag}
+                      </span>
+                    </div>
+                    <h3 className="font-display font-bold text-sm sm:text-base text-deep-navy group-hover:text-burnt-orange transition-colors">
+                      {card.title}
+                    </h3>
+                    <p className="text-xs text-warm-gray leading-relaxed">
+                      {card.desc}
+                    </p>
                   </div>
-                  <h3 className="font-display font-bold text-base text-white mb-2">{card.title}</h3>
-                  <p className="text-xs text-stone-400 leading-relaxed">{card.desc}</p>
                 </div>
               );
             })}
@@ -589,205 +877,65 @@ export const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* 9. STATISTICS */}
-      <section className="bg-stone-950 text-white py-16 relative overflow-hidden border-b border-stone-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 lg:grid-cols-4 gap-8 text-center relative z-10">
-          {statsData.map((stat) => (
-            <div key={stat.id} className="space-y-1">
-              <span className="text-3xl sm:text-4xl lg:text-5xl font-display font-extrabold bg-gradient-to-r from-white via-stone-200 to-amber-405 bg-clip-text text-transparent block">
-                {stat.value}
-              </span>
-              <span className="text-xs font-semibold text-stone-500 uppercase tracking-widest block">
-                {stat.label}
-              </span>
-            </div>
-          ))}
-        </div>
-      </section>
+      {/* ===============================================================
+          9. STATISTICS WITH IMPACT NUMBERS
+      ================================================================ */}
+      
 
-      {/* 10. HOW IT WORKS */}
-      <section className="section-padding">
-        <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
-          <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-white">
-            How Oxyfied Works
-          </h2>
-          <p className="text-stone-400 text-sm sm:text-base leading-relaxed">
-            A simple 4-step path from selecting your course to obtaining your career verification.
-          </p>
-        </div>
+      {/* ===============================================================
+          10. HOW IT WORKS (4-STEP TIMELINE)
+      ================================================================ */}
+      
 
-        {/* Desktop Horizontal Timeline */}
-        <div className="hidden lg:grid grid-cols-4 gap-8 relative">
-          {/* Connector Line */}
-          <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-stone-800 -translate-y-1/2 z-0" />
-          
-          {[
-            { step: '01', title: 'Choose Your Course', desc: 'Select between Cybersecurity or Data Science tracks based on your career interests.' },
-            { step: '02', title: 'Learn Through Practical Content', desc: 'Interact with direct command parameters, system tools, and detailed script modules.' },
-            { step: '03', title: 'Build Real Projects', desc: 'Write actual code to resolve challenges, compiling a portfolio recruiters review.' },
-            { step: '04', title: 'Earn Your Certificate', desc: 'Submit assignments to verify competencies and earn digital shareable verification.' }
-          ].map((item, idx) => (
-            <div key={idx} className="relative z-10 bg-stone-900 border border-stone-850 p-6 rounded-2xl shadow-xl space-y-3 hover:border-amber-500/20 transition-colors">
-              <span className="text-2xl font-display font-extrabold text-amber-500 block leading-none">{item.step}</span>
-              <h3 className="font-display font-bold text-sm text-white">{item.title}</h3>
-              <p className="text-xs text-stone-400 leading-relaxed">{item.desc}</p>
-            </div>
-          ))}
-        </div>
+      {/* ===============================================================
+          11. TESTIMONIALS & GRADUATE SUCCESS
+      ================================================================ */}
+     
 
-        {/* Mobile Vertical Timeline */}
-        <div className="lg:hidden space-y-6 relative pl-6 border-l border-stone-800">
-          {[
-            { step: '01', title: 'Choose Your Course', desc: 'Select between Cybersecurity or Data Science tracks based on your career interests.' },
-            { step: '02', title: 'Learn Through Practical Content', desc: 'Interact with direct command parameters, system tools, and detailed script modules.' },
-            { step: '03', title: 'Build Real Projects', desc: 'Write actual code to resolve challenges, compiling a portfolio recruiters review.' },
-            { step: '04', title: 'Earn Your Certificate', desc: 'Submit assignments to verify competencies and earn digital shareable verification.' }
-          ].map((item, idx) => (
-            <div key={idx} className="relative space-y-2">
-              {/* Timeline dot */}
-              <div className="absolute -left-[31px] top-1.5 w-4.5 h-4.5 rounded-full bg-amber-500 border-4 border-stone-900 shadow-md animate-pulse" />
-              <span className="text-xl font-display font-extrabold text-amber-500 block leading-none">{item.step}</span>
-              <h3 className="font-display font-bold text-sm text-white">{item.title}</h3>
-              <p className="text-xs text-stone-400 leading-relaxed">{item.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+      
 
-      {/* 11. TESTIMONIALS */}
-      <section className="bg-[#0f0d0b] border-y border-stone-900 py-20">
+      {/* ===============================================================
+          13. RESOURCES (Blog Highlights)
+      ================================================================ */}
+      <section className="bg-warm-ivory border-b border-light-taupe/80 py-16 lg:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
-            <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-white">
-              What Our Learners Say
-            </h2>
-            <p className="text-stone-400 text-sm sm:text-base leading-relaxed">
-              Read real stories from graduates who pivoted into security and analytics roles.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {testimonials.map((item) => (
-              <div key={item.id} className="bg-stone-900 border border-stone-850 p-6 rounded-2xl shadow-xl flex flex-col justify-between space-y-4 hover:border-amber-500/20 transition-all duration-300">
-                <p className="text-stone-300 text-xs italic leading-relaxed">
-                  "{item.content}"
-                </p>
-                <div className="flex items-center gap-3 pt-4 border-t border-stone-850">
-                  <img
-                    src={item.avatar}
-                    alt={item.name}
-                    className="w-10 h-10 rounded-full object-cover border border-stone-800"
-                  />
-                  <div>
-                    <span className="text-xs font-bold text-white block">{item.name}</span>
-                    <span className="text-[10px] text-stone-400 block mt-0.5">{item.role}</span>
-                  </div>
-                  <div className="ml-auto flex flex-col items-end gap-1">
-                    <div className="flex text-amber-400 gap-0.5">
-                      {[...Array(item.rating)].map((_, i) => (
-                        <Star key={i} className="w-3 h-3 fill-current animate-pulse" />
-                      ))}
-                    </div>
-                    <span className="text-[9px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/25 px-1.5 py-0.5 rounded uppercase">
-                      {item.courseName}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 12. INSTRUCTOR SECTION */}
-      <section className="section-padding">
-        <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
-          <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-white">
-            Learn From Experienced Professionals
-          </h2>
-          <p className="text-stone-400 text-sm sm:text-base leading-relaxed">
-            Oxyfied tracks are crafted by practitioners who have managed enterprise systems, engineered datasets, and conducted security audits.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {instructors.map((item) => (
-            <div key={item.id} className="bg-stone-900 border border-stone-850 rounded-2xl p-6 shadow-xl flex flex-col sm:flex-row items-center sm:items-start gap-6 hover:border-amber-500/20 transition-colors">
-              <img
-                src={item.image}
-                alt={item.name}
-                className="w-24 h-24 rounded-2xl object-cover border border-stone-800 flex-shrink-0"
-              />
-              <div className="space-y-2.5 text-center sm:text-left">
-                <div>
-                  <h3 className="font-display font-bold text-base text-white">{item.name}</h3>
-                  <span className="text-xs text-amber-550 font-bold block mt-0.5">{item.role}</span>
-                </div>
-                <p className="text-stone-400 text-xs leading-relaxed">
-                  {item.bio}
-                </p>
-                <div className="flex flex-wrap gap-1.5 justify-center sm:justify-start">
-                  {(item.expertise || []).map((exp) => (
-                    <span key={exp} className="px-2 py-0.5 bg-stone-950 text-stone-300 text-[10px] font-semibold rounded">
-                      {exp}
-                    </span>
-                  ))}
-                </div>
-                <a
-                  href={item.linkedin}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-xs text-amber-500 hover:text-amber-400 font-bold"
-                >
-                  View LinkedIn Profile
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </a>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 13. RESOURCES (Blog Highlights) */}
-      <section className="bg-[#0f0d0b] border-t border-stone-900 py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-12 gap-4 text-left">
+          <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-10 gap-4 text-left">
             <div>
-              <h2 className="text-3xl font-display font-extrabold text-white">
-                Latest Resources & Insights
+              <h2 className="text-3xl font-display font-extrabold text-deep-navy tracking-tight">
+                Latest Insights & Resources
               </h2>
-              <p className="text-stone-400 text-xs sm:text-sm mt-2 leading-relaxed">
-                Stay updated on security compliance roadmaps, python libraries, and data science strategies.
+              <p className="text-warm-gray text-xs sm:text-sm mt-1 leading-relaxed">
+                Stay updated on security compliance, python libraries, and AI engineering methodologies.
               </p>
             </div>
-            <Link to="/resources" className="btn-secondary text-xs px-5 py-2.5 font-bold rounded-lg whitespace-nowrap">
+            <Link to="/resources" className="btn-secondary text-xs px-5 py-2 font-bold rounded-full whitespace-nowrap">
               All Resources
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
             {blogPosts.slice(0, 3).map((post) => (
-              <div key={post.id} className="bg-stone-900 border border-stone-850 rounded-2xl overflow-hidden flex flex-col justify-between shadow-xl hover:border-amber-500/20 transition-all duration-300">
-                <div className="aspect-[16/10] overflow-hidden bg-stone-950">
+              <div key={post.id} className="bg-warm-white border border-light-taupe rounded-2xl overflow-hidden flex flex-col justify-between shadow-2xs hover:border-burnt-orange hover:shadow-md transition-all duration-300 group">
+                <div className="aspect-[16/10] overflow-hidden bg-warm-ivory">
                   <img
                     src={post.image}
                     alt={post.title}
-                    className="w-full h-full object-cover opacity-85 hover:opacity-100 transition-opacity"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                 </div>
                 <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
-                  <div className="space-y-2">
-                    <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest block mb-1">
+                  <div className="space-y-1.5">
+                    <span className="text-[10px] font-bold text-burnt-orange uppercase tracking-wider block">
                       {post.category}
                     </span>
-                    <h3 className="font-display font-bold text-sm text-white hover:text-amber-400 transition-colors line-clamp-2">
+                    <h3 className="font-display font-bold text-sm sm:text-base text-deep-navy hover:text-burnt-orange transition-colors line-clamp-2">
                       <Link to={`/resources/${post.slug}`}>{post.title}</Link>
                     </h3>
-                    <p className="text-stone-400 text-xs leading-relaxed line-clamp-3">
+                    <p className="text-warm-gray text-xs leading-relaxed line-clamp-2">
                       {post.excerpt}
                     </p>
                   </div>
-                  <div className="flex items-center justify-between text-[10px] text-stone-500 font-semibold pt-3 border-t border-stone-850">
+                  <div className="flex items-center justify-between text-[11px] text-warm-gray font-semibold pt-3 border-t border-light-taupe/70">
                     <span>{post.date}</span>
                     <span>{post.readTime}</span>
                   </div>
@@ -798,28 +946,32 @@ export const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* 14. FINAL CTA */}
-      <section className="bg-gradient-to-tr from-[#0f0d0b] to-[#1e1305] text-white py-20 text-center relative overflow-hidden border-t border-stone-900">
-        {/* Visual Blur */}
-        <div className="absolute w-[450px] h-[450px] bg-amber-500/5 rounded-full blur-3xl pointer-events-none -bottom-36 -right-36" />
-        
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 relative z-10">
-          <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-white leading-tight">
-            Ready to Build Your Next Skill?
+      {/* ===============================================================
+          14. FINAL CTA BANNER
+      ================================================================ */}
+      {/* <section className="bg-deep-navy text-warm-white py-16 lg:py-20 text-center relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(242,107,33,0.18),transparent_50%)] pointer-events-none" />
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5 relative z-10">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-burnt-orange bg-burnt-orange/15 border border-burnt-orange/30 uppercase tracking-widest">
+            <Sparkles className="w-3.5 h-3.5" />
+            Join the Next Cohort
+          </span>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-extrabold text-white leading-tight">
+            Ready to Build Real Capabilities?
           </h2>
-          <p className="text-stone-300 text-sm sm:text-base leading-relaxed max-w-xl mx-auto">
-            Start learning practical technology skills with Oxyfied. Join our live programs today and prepare for system-audits or predictive data roles.
+          <p className="text-warm-white/80 text-xs sm:text-sm leading-relaxed max-w-lg mx-auto">
+            Start learning practical technology skills with Oxyfied. Join our live programs today and prepare for enterprise engineering roles.
           </p>
-          <div className="flex justify-center gap-4 pt-2">
-            <Link to="/courses" className="btn-primary px-8 py-3 text-xs font-bold rounded-lg shadow">
-              Explore Courses
+          <div className="flex justify-center gap-3 pt-2">
+            <Link to="/courses" className="btn-primary px-7 py-3 text-xs font-bold rounded-full shadow-lg">
+              Explore Programs
             </Link>
-            <Link to="/register" className="btn-secondary px-8 py-3 text-xs font-bold rounded-lg">
-              Get Started
+            <Link to="/register" className="btn-secondary px-7 py-3 text-xs font-bold rounded-full bg-white/10 text-white border-white/20 hover:bg-white/20">
+              Create Account
             </Link>
           </div>
         </div>
-      </section>
+      </section> */}
     </div>
   );
 };

@@ -1,20 +1,73 @@
 import axios from 'axios';
 import api from './api';
 import type { Course } from '../types';
+import { courses as fallbackCourses } from '../data/courses';
+
+const normalizeCourse = (c: any): Course => {
+  const categoryName = typeof c.category === 'object' && c.category?.name ? c.category.name : (c.category || 'Cybersecurity');
+  
+  let totalLessons = typeof c.lessons === 'number' && c.lessons > 0 ? c.lessons : 0;
+  if (Array.isArray(c.modules) && totalLessons === 0) {
+    totalLessons = c.modules.reduce((acc: number, m: any) => acc + (Array.isArray(m.lessons) ? m.lessons.length : 0), 0);
+  }
+  if (!totalLessons) totalLessons = 50;
+
+  return {
+    id: c.id,
+    slug: c.slug || c.id,
+    title: c.title,
+    category: categoryName,
+    description: c.description || c.shortDescription || '',
+    image: c.image || c.thumbnail || 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=800&auto=format&fit=crop',
+    price: typeof c.price === 'number' ? c.price : parseFloat(c.price || 0),
+    originalPrice: typeof c.originalPrice === 'number' ? c.originalPrice : (c.discountPrice ? parseFloat(c.discountPrice) : c.price),
+    duration: c.duration || '6 Months',
+    lessons: totalLessons,
+    level: c.level || 'Beginner to Advanced',
+    rating: typeof c.rating === 'number' ? c.rating : 4.9,
+    students: typeof c.students === 'number' ? c.students : (c.status === 'coming-soon' ? 0 : 1500),
+    status: c.status === 'coming-soon' ? 'coming-soon' : 'available',
+    featured: Boolean(c.featured ?? c.isFeatured),
+    skills: Array.isArray(c.skills) ? c.skills : [],
+    requirements: Array.isArray(c.requirements) ? c.requirements : [],
+    whoIsItFor: Array.isArray(c.whoIsItFor) ? c.whoIsItFor : [],
+    instructor: c.instructor || (c.mentor ? {
+      id: c.mentor.id,
+      name: c.mentor.name,
+      role: c.mentor.designation || 'Lead Mentor',
+      image: c.mentor.profileImage,
+      bio: c.mentor.bio || '',
+      expertise: c.mentor.expertise || []
+    } : undefined),
+    modules: Array.isArray(c.modules) ? c.modules : []
+  };
+};
 
 export const courseService = {
   // Public APIs
   getCourses: async (): Promise<Course[]> => {
-    const response = await api.get('/courses');
-    return response.data;
+    try {
+      const response = await api.get('/courses');
+      if (Array.isArray(response.data) && response.data.length > 0) {
+        return response.data.map(normalizeCourse);
+      }
+      return fallbackCourses.map(normalizeCourse);
+    } catch (err) {
+      return fallbackCourses.map(normalizeCourse);
+    }
   },
 
   getCourseBySlug: async (slug: string): Promise<Course | null> => {
     try {
       const response = await api.get(`/courses/${slug}`);
-      return response.data;
+      if (response.data && response.data.id) {
+        return normalizeCourse(response.data);
+      }
+      const found = fallbackCourses.find(c => c.slug === slug || c.id === slug);
+      return found ? normalizeCourse(found) : null;
     } catch (error) {
-      return null;
+      const found = fallbackCourses.find(c => c.slug === slug || c.id === slug);
+      return found ? normalizeCourse(found) : null;
     }
   },
 

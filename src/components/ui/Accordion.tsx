@@ -41,19 +41,19 @@ export const Accordion: React.FC<AccordionProps> = ({
         return (
           <div
             key={item.id}
-            className="border border-slate-200/80 rounded-xl bg-white overflow-hidden shadow-sm hover:border-slate-300 transition-colors"
+            className="border border-light-taupe rounded-xl bg-warm-white overflow-hidden shadow-sm hover:border-burnt-orange/50 transition-colors"
           >
             {/* Header Click Area */}
             <button
               onClick={() => handleToggle(item.id)}
-              className="w-full flex items-center justify-between p-4 sm:p-5 text-left font-medium text-slate-800 hover:text-slate-900 transition-colors focus:outline-none focus:bg-slate-50/50"
+              className="w-full flex items-center justify-between p-4 sm:p-5 text-left font-semibold text-deep-navy hover:text-burnt-orange transition-colors focus:outline-none focus:bg-warm-ivory/50"
             >
               <div className="flex-1 pr-4">
-                <span className="font-display font-semibold text-slate-900 sm:text-base text-sm block">
+                <span className="font-display font-bold text-deep-navy sm:text-base text-sm block">
                   {item.title}
                 </span>
                 {item.subtitle && (
-                  <span className="text-xs text-slate-500 font-normal mt-0.5 block">
+                  <span className="text-xs text-warm-gray font-normal mt-0.5 block">
                     {item.subtitle}
                   </span>
                 )}
@@ -61,7 +61,7 @@ export const Accordion: React.FC<AccordionProps> = ({
               <motion.div
                 animate={{ rotate: isOpen ? 180 : 0 }}
                 transition={{ duration: 0.2 }}
-                className="text-slate-400 flex-shrink-0"
+                className={`flex-shrink-0 ${isOpen ? 'text-burnt-orange' : 'text-warm-gray'}`}
               >
                 <ChevronDown className="w-5 h-5" />
               </motion.div>
@@ -76,7 +76,7 @@ export const Accordion: React.FC<AccordionProps> = ({
                   exit={{ height: 0, opacity: 0 }}
                   transition={{ duration: 0.25, ease: 'easeInOut' }}
                 >
-                  <div className="border-t border-slate-100 p-4 sm:p-5 bg-slate-50/30 text-sm text-slate-600 leading-relaxed">
+                  <div className="border-t border-light-taupe/60 p-4 sm:p-5 bg-warm-ivory/40 text-sm text-warm-gray leading-relaxed">
                     {item.content}
                   </div>
                 </motion.div>

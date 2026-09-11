@@ -39,70 +39,72 @@ export const ForgotPassword: React.FC = () => {
   };
 
   return (
-    <div className="bg-stone-950 min-h-screen flex items-center justify-center py-16 px-4">
-      <div className="w-full max-w-md bg-[#141210] border border-stone-850 p-8 rounded-2xl shadow-2xl space-y-6 text-left">
+    <div className="bg-warm-ivory min-h-screen flex items-center justify-center py-16 px-4">
+      <div className="w-full max-w-md bg-warm-white border border-light-taupe p-8 rounded-2xl shadow-lg space-y-6 text-left">
         {/* Header */}
         <div className="text-center space-y-2">
           <Link to="/" className="inline-flex items-center gap-2 justify-center">
-           
-            <span className="font-display font-extrabold text-lg tracking-tight text-white">
+            <span className="w-8 h-8 rounded-lg bg-deep-navy text-warm-ivory flex items-center justify-center font-display font-black text-base shadow-sm">
+              O
+            </span>
+            <span className="font-display font-extrabold text-xl tracking-tight text-deep-navy">
               Oxyfied
             </span>
           </Link>
-          <h2 className="text-xl font-display font-bold text-white mt-2">Reset Password</h2>
-          <p className="text-xs text-stone-400">We will email you a secure link to reset your password.</p>
+          <h2 className="text-2xl font-display font-bold text-deep-navy mt-2">Reset Password</h2>
+          <p className="text-xs sm:text-sm text-warm-gray">We will email you a secure link to reset your password.</p>
         </div>
 
         {errorMsg && (
-          <div className="p-3 bg-red-950/20 border border-red-900/50 text-red-300 text-xs rounded-xl flex items-center gap-2 font-medium">
-            <ShieldAlert className="w-4 h-4 text-red-500 flex-shrink-0" />
+          <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2 font-medium">
+            <ShieldAlert className="w-4 h-4 text-red-600 flex-shrink-0" />
             <span>{errorMsg}</span>
           </div>
         )}
 
         {success ? (
           <div className="space-y-4 animate-fadeIn">
-            <div className="p-4 bg-emerald-950/20 border border-emerald-900/50 text-emerald-300 text-xs rounded-xl flex items-start gap-2.5 font-medium">
-              <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+            <div className="p-4 bg-sage-green/15 border border-sage-green/30 text-deep-navy text-xs rounded-xl flex items-start gap-2.5 font-medium">
+              <CheckCircle2 className="w-5 h-5 text-sage-green flex-shrink-0" />
               <div>
-                <span className="font-bold block text-white">Reset Email Sent!</span>
-                <span>Please check your inbox (and spam folder) for instructions to restore access.</span>
+                <span className="font-bold block text-deep-navy">Reset Email Sent!</span>
+                <span className="text-warm-gray">Please check your inbox (and spam folder) for instructions to restore access.</span>
               </div>
             </div>
             <Link
               to="/login"
-              className="btn-primary w-full py-3 text-xs font-bold rounded-xl text-center flex items-center justify-center gap-1.5"
+              className="btn-primary w-full py-3.5 text-xs font-bold rounded-xl text-center flex items-center justify-center gap-2 shadow"
             >
               <ArrowLeft className="w-4 h-4" />
-              Back to Login
+              Back to Sign In
             </Link>
           </div>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {/* Field: Email */}
-            <div className="space-y-1">
-              <label htmlFor="forgot-email" className="text-[10px] font-bold text-stone-400 uppercase tracking-widest block">
+            <div className="space-y-1.5">
+              <label htmlFor="forgot-email" className="text-[10px] font-bold text-deep-navy uppercase tracking-widest block">
                 Email Address
               </label>
               <div className="relative">
                 <input
                   type="email"
                   id="forgot-email"
-                  placeholder="e.g. john@Oxyfied.com"
+                  placeholder="e.g. john@oxyfied.com"
                   {...register('email')}
-                  className={`w-full pl-9 pr-3 py-2 bg-stone-900 border rounded-lg text-xs text-white placeholder-stone-500 focus:outline-none focus:bg-stone-950 transition-all ${
-                    errors.email ? 'border-red-500 focus:border-red-550' : 'border-stone-800 focus:border-amber-500'
+                  className={`w-full pl-9 pr-3 py-2.5 bg-warm-ivory border rounded-xl text-xs text-deep-navy placeholder-warm-gray/60 focus:outline-none focus:bg-warm-white transition-all ${
+                    errors.email ? 'border-red-500 focus:border-red-500' : 'border-light-taupe focus:border-burnt-orange'
                   }`}
                 />
-                <Mail className="w-4 h-4 text-stone-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Mail className="w-4 h-4 text-warm-gray absolute left-3 top-1/2 -translate-y-1/2" />
               </div>
-              {errors.email && <span className="text-[10px] text-red-500 font-medium">{errors.email.message}</span>}
+              {errors.email && <span className="text-[10px] text-red-600 font-medium">{errors.email.message}</span>}
             </div>
 
             <button
               type="submit"
               disabled={isSubmitting}
-              className="btn-primary w-full py-3.5 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow"
+              className="btn-primary w-full py-3.5 font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow"
             >
               {isSubmitting ? 'Sending Link...' : 'Send Reset Link'}
             </button>
@@ -110,7 +112,7 @@ export const ForgotPassword: React.FC = () => {
             <div className="text-center pt-2">
               <Link
                 to="/login"
-                className="inline-flex items-center gap-1 text-xs font-semibold text-stone-400 hover:text-white transition-colors"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-warm-gray hover:text-deep-navy transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Back to Sign In

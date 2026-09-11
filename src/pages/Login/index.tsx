@@ -91,37 +91,40 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="bg-stone-950 min-h-screen flex items-center justify-center py-16 px-4">
-      <div className="w-full max-w-md bg-[#141210] border border-stone-850 p-8 rounded-2xl shadow-2xl space-y-6 text-left">
+    <div className="bg-warm-ivory min-h-screen flex items-center justify-center py-16 px-4">
+      <div className="w-full max-w-md bg-warm-white border border-light-taupe p-8 rounded-2xl shadow-lg space-y-6 text-left">
         {/* Header Logo */}
         <div className="text-center space-y-2">
           <Link to="/" className="inline-flex items-center gap-2 group justify-center">
-            <span className="font-display font-extrabold text-lg tracking-tight text-white">
+            <span className="w-8 h-8 rounded-lg bg-deep-navy text-warm-ivory flex items-center justify-center font-display font-black text-base shadow-sm">
+              O
+            </span>
+            <span className="font-display font-extrabold text-xl tracking-tight text-deep-navy">
               Oxyfied
             </span>
           </Link>
-          <h2 className="text-xl font-display font-bold text-white mt-2">Welcome Back</h2>
-          <p className="text-xs text-stone-400">Sign in to resume building tech capabilities.</p>
+          <h2 className="text-2xl font-display font-bold text-deep-navy mt-2">Welcome Back</h2>
+          <p className="text-xs sm:text-sm text-warm-gray">Sign in to resume building tech capabilities.</p>
         </div>
 
         {/* Demo Credentials Quick Switcher */}
-        <div className="p-3.5 bg-stone-900/90 border border-stone-800 rounded-xl space-y-2.5">
+        <div className="p-3.5 bg-warm-ivory border border-light-taupe rounded-xl space-y-2.5">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-500">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-burnt-orange">
               Quick Demo Accounts
             </span>
-            <span className="text-[9px] text-stone-500">Click to autofill</span>
+            <span className="text-[9px] text-warm-gray">Click to autofill</span>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => setDemoCredentials('evelyn.vance@oxyfied.com', 'mentorpassword123')}
-              className="p-2 text-left rounded-lg bg-stone-950/80 hover:bg-stone-850 border border-stone-800/80 hover:border-amber-500/40 transition-all group"
+              className="p-2 text-left rounded-lg bg-warm-white hover:bg-soft-beige border border-light-taupe hover:border-burnt-orange/50 transition-all group"
             >
-              <span className="text-[10px] font-bold text-stone-200 block group-hover:text-amber-400">
+              <span className="text-[10px] font-bold text-deep-navy block group-hover:text-burnt-orange">
                 Mentor (Dr. Evelyn)
               </span>
-              <span className="text-[8px] text-stone-500 font-mono block truncate">
+              <span className="text-[8px] text-warm-gray font-mono block truncate">
                 evelyn.vance@oxyfied.com
               </span>
             </button>
@@ -129,12 +132,12 @@ export const Login: React.FC = () => {
             <button
               type="button"
               onClick={() => setDemoCredentials('michael.kovac@oxyfied.com', 'mentorpassword123')}
-              className="p-2 text-left rounded-lg bg-stone-950/80 hover:bg-stone-850 border border-stone-800/80 hover:border-amber-500/40 transition-all group"
+              className="p-2 text-left rounded-lg bg-warm-white hover:bg-soft-beige border border-light-taupe hover:border-burnt-orange/50 transition-all group"
             >
-              <span className="text-[10px] font-bold text-stone-200 block group-hover:text-amber-400">
+              <span className="text-[10px] font-bold text-deep-navy block group-hover:text-burnt-orange">
                 Mentor (Michael K.)
               </span>
-              <span className="text-[8px] text-stone-500 font-mono block truncate">
+              <span className="text-[8px] text-warm-gray font-mono block truncate">
                 michael.kovac@oxyfied.com
               </span>
             </button>
@@ -142,12 +145,12 @@ export const Login: React.FC = () => {
             <button
               type="button"
               onClick={() => setDemoCredentials('admin@oxyfied.com', 'adminpassword123')}
-              className="p-2 text-left rounded-lg bg-stone-950/80 hover:bg-stone-850 border border-stone-800/80 hover:border-amber-500/40 transition-all group"
+              className="p-2 text-left rounded-lg bg-warm-white hover:bg-soft-beige border border-light-taupe hover:border-burnt-orange/50 transition-all group"
             >
-              <span className="text-[10px] font-bold text-stone-200 block group-hover:text-amber-400">
+              <span className="text-[10px] font-bold text-deep-navy block group-hover:text-burnt-orange">
                 Administrator
               </span>
-              <span className="text-[8px] text-stone-500 font-mono block truncate">
+              <span className="text-[8px] text-warm-gray font-mono block truncate">
                 admin@oxyfied.com
               </span>
             </button>
@@ -155,12 +158,12 @@ export const Login: React.FC = () => {
             <button
               type="button"
               onClick={() => setDemoCredentials('student@oxyfied.com', 'studentpassword123')}
-              className="p-2 text-left rounded-lg bg-stone-950/80 hover:bg-stone-850 border border-stone-800/80 hover:border-amber-500/40 transition-all group"
+              className="p-2 text-left rounded-lg bg-warm-white hover:bg-soft-beige border border-light-taupe hover:border-burnt-orange/50 transition-all group"
             >
-              <span className="text-[10px] font-bold text-stone-200 block group-hover:text-amber-400">
+              <span className="text-[10px] font-bold text-deep-navy block group-hover:text-burnt-orange">
                 Student
               </span>
-              <span className="text-[8px] text-stone-500 font-mono block truncate">
+              <span className="text-[8px] text-warm-gray font-mono block truncate">
                 student@oxyfied.com
               </span>
             </button>
@@ -168,40 +171,40 @@ export const Login: React.FC = () => {
         </div>
 
         {errorMsg && (
-          <div className="p-3 bg-red-950/20 border border-red-900/50 text-red-300 text-xs rounded-xl flex items-center gap-2 font-medium">
-            <ShieldAlert className="w-4 h-4 text-red-500 flex-shrink-0" />
+          <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2 font-medium">
+            <ShieldAlert className="w-4 h-4 text-red-600 flex-shrink-0" />
             <span>{errorMsg}</span>
           </div>
         )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {/* Field: Email */}
-          <div className="space-y-1">
-            <label htmlFor="login-email" className="text-[10px] font-bold text-stone-400 uppercase tracking-widest block">
+          <div className="space-y-1.5">
+            <label htmlFor="login-email" className="text-[10px] font-bold text-deep-navy uppercase tracking-widest block">
               Email Address
             </label>
             <div className="relative">
               <input
                 type="email"
                 id="login-email"
-                placeholder="e.g. name@Oxyfied.com"
+                placeholder="e.g. name@oxyfied.com"
                 {...register('email')}
-                className={`w-full pl-9 pr-3 py-2 bg-stone-900 border rounded-lg text-xs text-white placeholder-stone-500 focus:outline-none focus:bg-stone-950 transition-all ${
-                  errors.email ? 'border-red-500 focus:border-red-550' : 'border-stone-800 focus:border-amber-500'
+                className={`w-full pl-9 pr-3 py-2.5 bg-warm-ivory border rounded-xl text-xs text-deep-navy placeholder-warm-gray/60 focus:outline-none focus:bg-warm-white transition-all ${
+                  errors.email ? 'border-red-500 focus:border-red-500' : 'border-light-taupe focus:border-burnt-orange'
                 }`}
               />
-              <Mail className="w-4 h-4 text-stone-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Mail className="w-4 h-4 text-warm-gray absolute left-3 top-1/2 -translate-y-1/2" />
             </div>
-            {errors.email && <span className="text-[10px] text-red-500 font-medium">{errors.email.message}</span>}
+            {errors.email && <span className="text-[10px] text-red-600 font-medium">{errors.email.message}</span>}
           </div>
 
           {/* Field: Password */}
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <div className="flex justify-between items-center">
-              <label htmlFor="login-password" className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">
+              <label htmlFor="login-password" className="text-[10px] font-bold text-deep-navy uppercase tracking-widest">
                 Password
               </label>
-              <Link to="/forgot-password" className="text-[10px] font-semibold text-amber-500 hover:text-amber-450">
+              <Link to="/forgot-password" className="text-[10px] font-semibold text-burnt-orange hover:text-deep-orange">
                 Forgot Password?
               </Link>
             </div>
@@ -211,13 +214,13 @@ export const Login: React.FC = () => {
                 id="login-password"
                 placeholder="••••••••"
                 {...register('password')}
-                className={`w-full pl-9 pr-3 py-2 bg-stone-900 border rounded-lg text-xs text-white placeholder-stone-500 focus:outline-none focus:bg-stone-950 transition-all ${
-                  errors.password ? 'border-red-500 focus:border-red-550' : 'border-stone-800 focus:border-amber-500'
+                className={`w-full pl-9 pr-3 py-2.5 bg-warm-ivory border rounded-xl text-xs text-deep-navy placeholder-warm-gray/60 focus:outline-none focus:bg-warm-white transition-all ${
+                  errors.password ? 'border-red-500 focus:border-red-500' : 'border-light-taupe focus:border-burnt-orange'
                 }`}
               />
-              <Key className="w-4 h-4 text-stone-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Key className="w-4 h-4 text-warm-gray absolute left-3 top-1/2 -translate-y-1/2" />
             </div>
-            {errors.password && <span className="text-[10px] text-red-500 font-medium">{errors.password.message}</span>}
+            {errors.password && <span className="text-[10px] text-red-600 font-medium">{errors.password.message}</span>}
           </div>
 
           {/* Field: Remember me */}
@@ -226,9 +229,9 @@ export const Login: React.FC = () => {
               type="checkbox"
               id="remember-me"
               {...register('rememberMe')}
-              className="w-4 h-4 border-stone-800 rounded bg-stone-900 text-amber-550 focus:ring-amber-500"
+              className="w-4 h-4 border-light-taupe rounded bg-warm-ivory text-burnt-orange focus:ring-burnt-orange"
             />
-            <label htmlFor="remember-me" className="ml-2 text-xs text-stone-400 select-none">
+            <label htmlFor="remember-me" className="ml-2 text-xs text-warm-gray select-none">
               Remember me on this browser
             </label>
           </div>
@@ -236,17 +239,17 @@ export const Login: React.FC = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="btn-primary w-full py-3.5 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow"
+            className="btn-primary w-full py-3.5 font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow"
           >
             {isSubmitting ? 'Authenticating...' : 'Sign In'}
             <LogIn className="w-4 h-4" />
           </button>
         </form>
 
-        <div className="border-t border-stone-850 pt-4 text-center">
-          <p className="text-xs text-stone-400">
+        <div className="border-t border-light-taupe pt-4 text-center">
+          <p className="text-xs text-warm-gray">
             Don't have an account yet?{' '}
-            <Link to="/register" className="font-bold text-amber-500 hover:text-amber-450">
+            <Link to="/register" className="font-bold text-burnt-orange hover:text-deep-orange">
               Create Account
             </Link>
           </p>

@@ -70,31 +70,33 @@ export const DashboardLayout: React.FC = () => {
   }
 
   return (
-    <div className="flex h-screen bg-stone-950 overflow-hidden">
+    <div className="flex h-screen bg-warm-ivory overflow-hidden">
       {/* Mobile Sidebar Overlay Drawer */}
       {sidebarOpen && (
         <div
           onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-deep-navy/60 backdrop-blur-sm lg:hidden"
         />
       )}
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex flex-col w-64 bg-[#0f0d0b] text-stone-300 border-r border-stone-900 transition-transform duration-300 transform lg:static lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col w-64 bg-deep-navy text-warm-ivory border-r border-deep-navy/20 transition-transform duration-300 transform lg:static lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
       >
         {/* Sidebar Header Branding */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-stone-900 bg-[#0f0d0b]">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-white/10 bg-deep-navy">
           <Link to="/" className="flex items-center gap-2">
-           
+            <span className="w-8 h-8 rounded-lg bg-burnt-orange text-white flex items-center justify-center font-display font-black text-base shadow-sm">
+              O
+            </span>
             <span className="font-display font-extrabold text-lg text-white tracking-tight">
               Oxyfied LMS
             </span>
           </Link>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900 lg:hidden"
+            className="p-1.5 rounded-lg text-warm-gray hover:text-white hover:bg-white/10 lg:hidden"
             aria-label="Close sidebar"
           >
             <X className="w-5 h-5" />
@@ -113,8 +115,8 @@ export const DashboardLayout: React.FC = () => {
                 onClick={() => setSidebarOpen(false)}
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-200 ${isActive
-                    ? 'bg-amber-600/20 text-amber-400 border border-amber-500/30 shadow'
-                    : 'hover:bg-stone-900 hover:text-white'
+                    ? 'bg-burnt-orange text-white shadow-md font-bold'
+                    : 'text-warm-ivory/80 hover:bg-white/10 hover:text-white'
                   }`
                 }
               >
@@ -126,17 +128,17 @@ export const DashboardLayout: React.FC = () => {
         </nav>
 
         {/* Sidebar Footer User controls */}
-        <div className="p-4 border-t border-stone-900 bg-[#0f0d0b]/40">
+        <div className="p-4 border-t border-white/10 bg-deep-navy/80">
           <Link
             to="/"
-            className="flex items-center gap-3 px-4 py-2.5 text-xs font-semibold rounded-lg text-stone-400 hover:text-white hover:bg-stone-900 transition-colors mb-2"
+            className="flex items-center gap-3 px-4 py-2.5 text-xs font-semibold rounded-xl text-warm-ivory/80 hover:text-white hover:bg-white/10 transition-colors mb-2"
           >
             <Home className="w-4 h-4" />
             Back to Public Website
           </Link>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 w-full px-4 py-2.5 text-xs font-semibold rounded-lg text-red-400 hover:bg-red-950/30 hover:text-red-300 transition-colors"
+            className="flex items-center gap-3 w-full px-4 py-2.5 text-xs font-semibold rounded-xl text-red-300 hover:bg-red-500/20 hover:text-red-200 transition-colors"
           >
             <LogOut className="w-4 h-4" />
             Log Out
@@ -145,20 +147,20 @@ export const DashboardLayout: React.FC = () => {
       </aside>
 
       {/* Main Panel Content Area */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
+      <div className="flex-1 flex flex-col h-full overflow-hidden bg-warm-ivory">
         {/* Dashboard Top Header */}
-        <header className="bg-stone-900/80 border-b border-stone-800/80 px-6 py-4 flex items-center justify-between shadow-sm backdrop-blur-md">
+        <header className="bg-warm-white border-b border-light-taupe px-6 py-4 flex items-center justify-between shadow-sm">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="p-1.5 rounded-lg text-stone-400 hover:text-white hover:bg-stone-800 lg:hidden"
+              className="p-2 rounded-lg text-deep-navy hover:bg-warm-ivory lg:hidden"
               aria-label="Open sidebar"
             >
               <Menu className="w-5.5 h-5.5" />
             </button>
             <div className="hidden sm:block">
-              <h1 className="text-lg font-bold text-white font-display">{dashboardHeading}</h1>
-              <p className="text-xs text-stone-400 mt-0.5">Welcome back, {user?.name || 'Learner'}</p>
+              <h1 className="text-lg font-bold text-deep-navy font-display">{dashboardHeading}</h1>
+              <p className="text-xs text-warm-gray mt-0.5">Welcome back, {user?.name || 'Learner'}</p>
             </div>
           </div>
 
@@ -170,15 +172,15 @@ export const DashboardLayout: React.FC = () => {
                 onClick={() => setIsNotificationsOpen(prev => !prev)}
                 className={`p-2 rounded-full transition-all relative ${
                   isNotificationsOpen 
-                    ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' 
-                    : 'text-stone-400 hover:text-stone-200 hover:bg-stone-800'
+                    ? 'bg-burnt-orange/15 text-burnt-orange border border-burnt-orange/30' 
+                    : 'text-warm-gray hover:text-deep-navy hover:bg-warm-ivory'
                 }`}
                 aria-label="View notifications"
                 title="Notifications"
               >
                 <Bell className="w-5 h-5" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-stone-950 text-[10px] font-extrabold flex items-center justify-center animate-pulse">
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-burnt-orange text-white text-[10px] font-extrabold flex items-center justify-center shadow-sm">
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
@@ -192,22 +194,22 @@ export const DashboardLayout: React.FC = () => {
             </div>
 
             {/* Profile Avatar Card */}
-            <div className="flex items-center gap-2.5 border-l border-stone-800 pl-4">
+            <div className="flex items-center gap-2.5 border-l border-light-taupe pl-4">
               <img
                 src={user?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop'}
                 alt={user?.name}
-                className="w-9 h-9 rounded-full object-cover border border-stone-800"
+                className="w-9 h-9 rounded-full object-cover border border-light-taupe"
               />
               <div className="hidden md:block">
-                <span className="text-xs font-bold text-stone-200 block leading-tight">{user?.name}</span>
-                <span className="text-[10px] text-stone-400 block leading-none">{user?.email}</span>
+                <span className="text-xs font-bold text-deep-navy block leading-tight">{user?.name}</span>
+                <span className="text-[10px] text-warm-gray block leading-none">{user?.email}</span>
               </div>
             </div>
           </div>
         </header>
 
         {/* Dashboard Pages Viewer */}
-        <main className="flex-1 overflow-y-auto p-6 bg-stone-950">
+        <main className="flex-1 overflow-y-auto p-6 bg-warm-ivory">
           <Outlet />
         </main>
       </div>
