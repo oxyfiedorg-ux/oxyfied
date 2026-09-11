@@ -1,21 +1,8 @@
 import React from 'react';
 import {
   ShieldCheck,
-  Brain,
-  Database,
   BarChart3,
-  Cloud,
-  Code2,
-  Lock,
-  Cpu,
-  Terminal,
-  Layers,
-  Sparkles,
-  Bot,
-  Blocks,
-  Atom,
-  Server,
-  Workflow
+  Code2
 } from 'lucide-react';
 import type { Course } from '../../types';
 

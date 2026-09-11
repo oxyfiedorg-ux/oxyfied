@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ShieldCheck,
   TrendingUp,
   Award,
   Users,
-  Star,
   CheckCircle2,
   Clock,
-  BookOpen,
   ArrowRight,
   Layers,
   Terminal,
@@ -17,14 +15,12 @@ import {
   Sparkles,
   CheckCircle,
   FileCode2,
-  Database,
-  PhoneCall
+  Database
 } from 'lucide-react';
 import { courseService } from '../../services/courseService';
 import type { Course } from '../../types';
 import { blogPosts } from '../../data/blog';
 
-import { useCart } from '../../context/CartContext';
 import { SEO } from '../../components/common/SEO';
 import { HeroSlider } from '../../components/ui/HeroSlider';
 import { RealWorldSkillsSection } from '../../components/home/RealWorldSkillsSection';
@@ -42,11 +38,6 @@ const CATEGORIES: { id: CategoryFilter; label: string; icon: React.ElementType }
 export const Home: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>('All Categories');
   const [activeLabTab, setActiveLabTab] = useState<'terminal' | 'notebook' | 'mentorship' | 'certificate'>('terminal');
-  const [notifiedEmails, setNotifiedEmails] = useState<Record<string, boolean>>({});
-  const [emailInput, setEmailInput] = useState<Record<string, string>>({});
-  
-  const { addToCart, isInCart } = useCart();
-  const navigate = useNavigate();
 
   // Dynamic homepage states
   const [courses, setCourses] = useState<Course[]>([]);
@@ -71,36 +62,6 @@ export const Home: React.FC = () => {
 
     fetchHomepageData();
   }, []);
-
-  // Handle enrollment CTA
-  const handleEnrollClick = (course: any) => {
-    if (isInCart(course.id)) {
-      navigate(`/checkout/${course.id}`);
-    } else {
-      addToCart({
-        courseId: course.id,
-        title: course.title,
-        price: course.price,
-        image: course.image,
-        slug: course.slug
-      });
-      navigate(`/checkout/${course.id}`);
-    }
-  };
-
-  // Handle upcoming course email notification signup
-  const handleNotifySubmit = (e: React.FormEvent, courseId: string) => {
-    e.preventDefault();
-    const email = emailInput[courseId] || '';
-    if (!email.trim()) return;
-    
-    setNotifiedEmails((prev) => ({ ...prev, [courseId]: true }));
-    setEmailInput((prev) => ({ ...prev, [courseId]: '' }));
-  };
-
-  const handleEmailChange = (courseId: string, val: string) => {
-    setEmailInput((prev) => ({ ...prev, [courseId]: val }));
-  };
 
   // Helper to filter courses based on category
   const checkCourseMatchesCategory = (course: Course, cat: CategoryFilter): boolean => {

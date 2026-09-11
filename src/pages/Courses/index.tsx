@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { Search, RefreshCw, AlertCircle, Layers } from 'lucide-react';
 import { courseService } from '../../services/courseService';
 import type { Course } from '../../types';
@@ -8,7 +8,6 @@ import { CourseCard } from '../../components/common/CourseCard';
 
 export const Courses: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
 
   // Search & Filter state parameters
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
